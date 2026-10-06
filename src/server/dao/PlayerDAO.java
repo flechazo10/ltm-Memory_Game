@@ -61,7 +61,7 @@ public class PlayerDAO extends DAO {
                 p.setUsername(rs.getString("username"));
                 p.setPassword(rs.getString("password"));
                 p.setStatus(rs.getString("status"));
-                p.setTotalScore(rs.getInt("totalScore"));
+                p.setTotalScore(rs.getDouble("totalScore"));
                 p.setRank(rank++);            // Tính thứ hạng dựa trên tổng điểm
                 rankingList.add(p);
             }
@@ -84,7 +84,7 @@ public class PlayerDAO extends DAO {
                 p.setUsername(rs.getString("username"));
                 p.setPassword(rs.getString("password"));
                 p.setStatus(rs.getString("status"));
-                p.setTotalScore(rs.getInt("totalScore"));
+                p.setTotalScore(rs.getDouble("totalScore"));
                 historyList.add(p);
             }
         }
@@ -99,7 +99,7 @@ public class PlayerDAO extends DAO {
 
         Player player = null;
         if (rs.next()) {
-            player = new Player(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getInt("totalScore"), rs.getString("status"));
+            player = new Player(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getDouble("totalScore"), rs.getString("status"));
         }
         return player;
     }
@@ -124,7 +124,7 @@ public class PlayerDAO extends DAO {
         ResultSet rs = stmt.executeQuery(query);
 
         while (rs.next()) {
-            Player player = new Player(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getInt("totalScore"), rs.getString("status"));
+            Player player = new Player(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getDouble("totalScore"), rs.getString("status"));
             players.add(player);
 //            System.out.println("Loaded player: ID=" + player.getId() + ", Username=" + player.getUsername() + ", Status=" + player.getStatus());
         }
@@ -132,10 +132,10 @@ public class PlayerDAO extends DAO {
     }
 
     // Update diem cua nguoi choi sau tran
-    public void updatePlayerElo(Player player, int eloChange) {
+    public void updatePlayerElo(Player player, double eloChange) {
         String sql = "UPDATE tblPlayer SET totalScore = totalScore + ? WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, eloChange);
+            ps.setDouble(1, eloChange);
             ps.setInt(2, player.getId());
 
             int rowUpdaetd  = ps.executeUpdate();
@@ -161,7 +161,7 @@ public class PlayerDAO extends DAO {
 
         ResultSet rs = stmt.executeQuery();
         if (rs.next()) {
-            Player authenticatePlayer = new Player(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getInt("totalScore"), rs.getString("status"));
+            Player authenticatePlayer = new Player(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getDouble("totalScore"), rs.getString("status"));
             Boolean isOffline = rs.getString("status").equalsIgnoreCase(String.valueOf(Status.OFFLINE));
             return new Pair<>(authenticatePlayer, isOffline);
         }
