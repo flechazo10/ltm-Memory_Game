@@ -16,10 +16,10 @@ public class Player implements Serializable {
     private String username;
     private String password;
     private String status;
-    private int totalScore;
+    private double totalScore;
     private int rank;
 
-    public Player(int id, String username, String password, int totalScore, String status) {
+    public Player(int id, String username, String password, double totalScore, String status) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -62,11 +62,11 @@ public class Player implements Serializable {
         this.status = status;
     }
 
-    public int getTotalScore() {
+    public double getTotalScore() {
         return totalScore;
     }
 
-    public void setTotalScore(int totalScore) {
+    public void setTotalScore(double totalScore) {
         this.totalScore = totalScore;
     }
 
