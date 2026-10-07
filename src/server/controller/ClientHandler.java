@@ -92,43 +92,43 @@ public class ClientHandler implements Runnable {
 
     private void handleMessage(Message message) throws IOException, SQLException {
         switch (message.getType()) {
-            case MessageType.LOGIN:
+            case LOGIN:
                 handleLogin(message);
                 break;
-            case MessageType.GET_PLAYERS:
+            case GET_PLAYERS:
                 handleGetPlayers();
                 break;
-            case MessageType.LOGOUT:
+            case LOGOUT:
                 handleLogout();
                 break;
-            case MessageType.GET_RANKING:
+            case GET_RANKING:
                 handleGetRanking(message);
                 break;
-            case MessageType.GET_HISTORY:
+            case GET_HISTORY:
                 handleGetHistory(message);
                 break;
-            case MessageType.GET_HISTORY_DETAIL:
+            case GET_HISTORY_DETAIL:
                 handleGetHistoryDetail(message);
                 break;
-            case MessageType.INVITE_REQUEST:
+            case INVITE_REQUEST:
                 handleInvitePlayer(message);
                 break;
-            case MessageType.INVITE_RESPONSE:
+            case INVITE_RESPONSE:
                 handleInviteResponse(message);
                 break;
-            case MessageType.PLAYER_MOVE:
+            case PLAYER_MOVE:
                 handleFlipCard(message);
                 break;
-            case MessageType.SIGN_UP:
+            case SIGN_UP:
                 handleSignUp(message);
                 break;
-            case MessageType.QUIT_GAME:
+            case QUIT_GAME:
                 handleExitGameRoom(message);
                 break;
-            case MessageType.PLAY_AGAIN_REQUEST:
+            case PLAY_AGAIN_REQUEST:
                 handlePlayAgainRequest(message);
                 break;
-            case MessageType.REJECT_PLAY_AGAIN:
+            case REJECT_PLAY_AGAIN:
                 handleRejectPlayAgain(message);
                 break;
         }

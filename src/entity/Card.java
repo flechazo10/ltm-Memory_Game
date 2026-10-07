@@ -22,7 +22,7 @@ public class Card implements Serializable {
         return matchedByPlayerId;
     }
 
-    public void setMatchedByPlayerId(int matchedByPlayerId) {git
+    public void setMatchedByPlayerId(int matchedByPlayerId) {
         this.matchedByPlayerId = matchedByPlayerId;
     }
 
