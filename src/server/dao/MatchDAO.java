@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package server.dao;
 
 import constants.DetailMatchResult;
@@ -23,10 +19,9 @@ public class MatchDAO extends DAO{
     public MatchDAO() throws SQLException {
         super();
     }
-    //Tao tran dau
-
+    // Tạo trận đấu mới, trả về id vừa sinh (hoặc -1 nếu lỗi)
     public int createMatch(Match match) throws SQLException {
-        String sql = "INSERT INTO tblmatch (player1_id, player2_id, theme, status, start_time,time_limit) VALUES (?, ?, ?, ?, ?,?)";
+        String sql = "INSERT INTO tblmatch (player1_id, player2_id, theme, status, start_time, time_limit) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, match.getPlayer1Id());
             ps.setInt(2, match.getPlayer2Id());
@@ -106,7 +101,7 @@ public class MatchDAO extends DAO{
                     DetailMatch detail = new DetailMatch();
                     detail.setMatch(match);
                     detail.setPlayer(opponent);
-                    detail.setPoints(rs.getInt("points"));
+                    detail.setPoints(rs.getDouble("points"));
                     detail.setQuit(rs.getBoolean("isQuit"));
 
                     String resultStr = rs.getString("result");
@@ -138,7 +133,7 @@ public class MatchDAO extends DAO{
                 ps.setNull(1, Types.INTEGER);
             }
             ps.setString(2, MatchStatus.FINISHED.toString());
-            ps.setString(3, LocalDateTime.now().toString());
+            ps.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
             ps.setInt(4, match.getId());
             int rowsAffected = ps.executeUpdate();
             if (rowsAffected > 0) {
