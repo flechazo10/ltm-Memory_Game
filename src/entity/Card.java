@@ -1,4 +1,4 @@
-package entity;
+gipackage entity;
 
 import java.io.Serializable;
 
