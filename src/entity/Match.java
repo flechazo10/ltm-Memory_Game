@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package entity;
 
 import constants.MatchStatus;
@@ -10,24 +6,28 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- *
- * @author ngotu
+ * Thông tin tổng quan 1 trận đấu - ánh xạ bảng tblmatch.
+ * timeLimit tính bằng giây (mặc định 15 phút = 900 giây).
  */
 public class Match implements Serializable {
+    private static final long serialVersionUID = 1L;
+    public static final int DEFAULT_TIME_LIMIT = 15 * 60;
+
     private int id;
     private int player1Id;
     private int player2Id;
-    private int winnerId;
+    private int winnerId;          // 0 = hòa / chưa có người thắng (NULL trong DB)
     private String theme;
     private MatchStatus status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private int timeLimit;
-    public Match() {
+    private int timeLimit = DEFAULT_TIME_LIMIT;
 
+    public Match() {
     }
 
-    public Match(LocalDateTime endTime, int id, int player1Id, int player2Id, LocalDateTime startTime, MatchStatus status, String theme, int winnerId) {
+    public Match(LocalDateTime endTime, int id, int player1Id, int player2Id, LocalDateTime startTime,
+                 MatchStatus status, String theme, int winnerId) {
         this.endTime = endTime;
         this.id = id;
         this.player1Id = player1Id;
@@ -37,8 +37,15 @@ public class Match implements Serializable {
         this.theme = theme;
         this.winnerId = winnerId;
     }
-    public int getTimeLimit() { return timeLimit; }
-    public void setTimeLimit(int timeLimit) { this.timeLimit = timeLimit; }
+
+    public int getTimeLimit() {
+        return timeLimit;
+    }
+
+    public void setTimeLimit(int timeLimit) {
+        this.timeLimit = timeLimit;
+    }
+
     public LocalDateTime getEndTime() {
         return endTime;
     }

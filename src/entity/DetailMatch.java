@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package entity;
 
 import constants.DetailMatchResult;
@@ -9,21 +5,23 @@ import constants.DetailMatchResult;
 import java.io.Serializable;
 
 /**
- *
- * @author dbao0
+ * Chi tiết kết quả của 1 người chơi trong 1 trận - ánh xạ bảng tbldetailmatch.
+ * points dùng double: thắng 1, hòa 0.5, thua 0.
  */
 public class DetailMatch implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
+
     private int id;
-    private int points;
-    private  boolean isQuit;
+    private double points;
+    private boolean isQuit;
     private DetailMatchResult result;
-    Player player;
-    Match match;
+    private Player player;
+    private Match match;
+
     public DetailMatch() {
     }
 
-    public DetailMatch(int id, boolean isQuit, Match match, Player player, int points, DetailMatchResult result) {
+    public DetailMatch(int id, boolean isQuit, Match match, Player player, double points, DetailMatchResult result) {
         this.id = id;
         this.isQuit = isQuit;
         this.match = match;
@@ -64,11 +62,11 @@ public class DetailMatch implements Serializable {
         this.player = player;
     }
 
-    public int getPoints() {
+    public double getPoints() {
         return points;
     }
 
-    public void setPoints(int points) {
+    public void setPoints(double points) {
         this.points = points;
     }
 
