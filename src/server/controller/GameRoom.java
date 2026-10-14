@@ -136,6 +136,7 @@ public class GameRoom {
                 sendToBoth(new Message(MessageType.START_GAME, gameData));
 
                 gameState = GameState.PLAYING;
+                matchTimeoutTask = scheduler.schedule(this::handleMatchTimeout, MATCH_TIMEOUT_MINUTES, TimeUnit.MINUTES);
                 requestNextTurn(currentTurnHandler);
             }
 
@@ -304,6 +305,16 @@ public class GameRoom {
         }
     }
 
+    private void handleMatchTimeout() {
+        synchronized (gameLock) {
+            if (gameState != GameState.PLAYING) return;
+            System.out.println("⏰ Hết thời gian trận đấu (" + MATCH_TIMEOUT_MINUTES + " phút)!");
+            ClientHandler winner = (player1Pairs > player2Pairs) ? player1Handler : ((player2Pairs > player1Pairs) ? player2Handler : null);
+            ClientHandler loser = (winner == null) ? null : (winner == player1Handler ? player2Handler : player1Handler);
+            endMatch(winner, loser, false);
+        }
+    }
+
     private void endMatch(ClientHandler winner, ClientHandler loser, boolean wasDisconnect) {
         // Kiem tra trang thai game va tien hanh don dep
         synchronized (gameLock) {
@@ -409,7 +420,7 @@ public class GameRoom {
             playerDAO.updatePlayerStatus(player1Handler.getPlayer().getId(), "ONLINE");
             playerDAO.updatePlayerStatus(player2Handler.getPlayer().getId(), "ONLINE");
 
-            List<Player> onlineUsers = playerDAO.getAllPlayers();
+            List<Player> onlineUsers = playerDAO.getOnlinePlayers();
             player1Handler.getServer().broadcast(new Message(MessageType.ONLINE_LIST_UPDATE, onlineUsers));
 
             player1Handler.clearGameRoom();
