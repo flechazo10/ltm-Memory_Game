@@ -18,6 +18,7 @@ public class RankingController {
     @FXML private TableColumn<Player, Integer> colRankR;
     @FXML private TableColumn<Player, String> colNameR;
     @FXML private TableColumn<Player, Double> colTotalScoreR; // Đổi sang Double
+    @FXML private TableColumn<Player, Integer> colWinCountR;
     @FXML private TableColumn<Player, String> colMedalR;
 
     public void setClient(ClientService client) {
@@ -29,6 +30,7 @@ public class RankingController {
         colRankR.setCellValueFactory(new PropertyValueFactory<>("rank"));
         colNameR.setCellValueFactory(new PropertyValueFactory<>("username"));
         colTotalScoreR.setCellValueFactory(new PropertyValueFactory<>("totalScore"));
+        colWinCountR.setCellValueFactory(new PropertyValueFactory<>("winCount"));
 
         colMedalR.setCellFactory(column -> new TableCell<Player, String>() {
             @Override

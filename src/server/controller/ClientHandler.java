@@ -240,6 +240,7 @@ public class ClientHandler implements Runnable {
             clone.setPassword(p.getPassword());
             clone.setStatus(p.getStatus());
             clone.setTotalScore(p.getTotalScore());
+            clone.setWinCount(p.getWinCount());
             clone.setRank(p.getRank());
             deepCopy.add(clone);
         }
@@ -354,7 +355,7 @@ public class ClientHandler implements Runnable {
             server.getPlayerDAO().updatePlayerStatus(client_receive_request.getPlayer().getId(), String.valueOf(Status.PLAYING));
 
             // lay danh sach nguoi online tu CSDL
-            List<Player> onlinePlayers = server.getPlayerDAO().getAllPlayers();
+            List<Player> onlinePlayers = server.getPlayerDAO().getOnlinePlayers();
             Message updateMsg = new Message(MessageType.ONLINE_LIST_UPDATE, onlinePlayers);
 
             server.broadcast(updateMsg);

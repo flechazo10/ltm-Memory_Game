@@ -687,12 +687,16 @@ public class GameRoomController implements Initializable {
         ButtonType homeButton = new ButtonType("Về sảnh chính", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(continueBtn, homeButton);
 
-        alert.showAndWait().ifPresent(response -> {
+        alert.showAndWait().ifPresentOrElse(response -> {
             if (response == continueBtn) {
                 app.sendMessage(new Message(MessageType.PLAY_AGAIN_REQUEST, userPlayer));
             } else {
+                app.sendMessage(new Message(MessageType.REJECT_PLAY_AGAIN, userPlayer));
                 goHome();
             }
+        }, () -> {
+            app.sendMessage(new Message(MessageType.REJECT_PLAY_AGAIN, userPlayer));
+            goHome();
         });
     }
 }
