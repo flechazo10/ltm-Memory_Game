@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="client.controller.LoginController"
+           styleClass="app-root" prefWidth="1000.0" prefHeight="680.0"
+           stylesheets="@style.css, @auth.css">
+    <children>
+        <VBox styleClass="auth-card" spacing="14.0" maxWidth="400.0" maxHeight="-Infinity">
+            <children>
+                <Label styleClass="auth-logo" text="LB"/>
+                <VBox spacing="4.0">
+                    <children>
+                        <Label styleClass="app-title" text="Lật Bài Online"/>
+                        <Label styleClass="muted" wrapText="true" text="Đăng nhập để vào sảnh và thách đấu bạn bè."/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <VBox.margin><Insets top="8.0"/></VBox.margin>
+                    <children>
+                        <Label styleClass="field-label" text="Tên đăng nhập"/>
+                        <TextField fx:id="txtUsername" promptText="Nhập tên đăng nhập"/>
+                    </children>
+                </VBox>
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="field-label" text="Mật khẩu"/>
+                        <PasswordField fx:id="txtPassword" promptText="Nhập mật khẩu" onAction="#handleLogin"/>
+                    </children>
+                </VBox>
+
+                <Button styleClass="btn-primary" text="Đăng nhập" defaultButton="true"
+                        maxWidth="Infinity" onAction="#handleLogin">
+                    <VBox.margin><Insets top="6.0"/></VBox.margin>
+                </Button>
+                <Label fx:id="statusLabel" styleClass="status-text" wrapText="true" text=""/>
+
+                <HBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label styleClass="muted" text="Chưa có tài khoản?"/>
+                        <Hyperlink text="Đăng ký ngay" onAction="#handleGoToSignUp"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>

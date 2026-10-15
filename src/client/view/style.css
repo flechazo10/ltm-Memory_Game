@@ -1,0 +1,240 @@
+/* =====================================================================
+   Lật Bài Online - bộ giao diện sáng, tối giản
+   Đổi màu cả app: sửa các biến -c-... trong .root bên dưới.
+   ===================================================================== */
+
+.root {
+    -c-bg: #f4f5f7;          /* nền app */
+    -c-surface: #ffffff;     /* khối / thẻ */
+    -c-border: #e2e5e9;
+    -c-text: #111827;
+    -c-muted: #6b7280;
+    -c-accent: #2563eb;      /* màu nhấn chính */
+    -c-accent-dark: #1d4ed8;
+    -c-accent-soft: #eff4ff;
+    -c-danger: #dc2626;
+    -c-success: #16a34a;
+    -c-warning: #d97706;
+
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: -c-text;
+    -fx-background-color: -c-bg;
+}
+
+/* Nền toàn màn. Muốn dùng ảnh nền: đặt file vào assets/images/background/app_bg.jpg
+   rồi bỏ comment 2 dòng -fx-background-image / -fx-background-size bên dưới. */
+.app-root {
+    -fx-background-color: -c-bg;
+    /* -fx-background-image: url("../../assets/images/background/app_bg.jpg"); */
+    /* -fx-background-size: cover; */
+}
+
+/* ---------- Chữ ---------- */
+.label { -fx-text-fill: -c-text; }
+.app-title   { -fx-font-size: 26px; -fx-font-weight: bold; }
+.page-title  { -fx-font-size: 22px; -fx-font-weight: bold; }
+.section-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.brand       { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -c-accent; }
+.muted       { -fx-text-fill: -c-muted; }
+.small       { -fx-font-size: 12px; }
+.field-label { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #374151; }
+
+/* ---------- Khối ---------- */
+.panel {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+}
+.header-bar {
+    -fx-background-color: -c-surface;
+    -fx-border-color: transparent transparent -c-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12 24 12 24;
+}
+
+/* ---------- Ô nhập ---------- */
+.text-field, .password-field {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 8;
+    -fx-padding: 9 12 9 12;
+    -fx-prompt-text-fill: #9ca3af;
+}
+.text-field:focused, .password-field:focused {
+    -fx-border-color: -c-accent;
+}
+
+/* ---------- Nút ---------- */
+.button {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 9 16 9 16;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-color: -c-surface;
+    -fx-border-color: -c-border;
+    -fx-text-fill: -c-text;
+}
+.button:hover { -fx-background-color: #f9fafb; }
+.button:pressed { -fx-background-color: #f3f4f6; }
+
+.btn-primary {
+    -fx-background-color: -c-accent;
+    -fx-border-color: -c-accent;
+    -fx-text-fill: white;
+}
+.btn-primary:hover { -fx-background-color: -c-accent-dark; -fx-border-color: -c-accent-dark; }
+
+.btn-danger {
+    -fx-background-color: -c-danger;
+    -fx-border-color: -c-danger;
+    -fx-text-fill: white;
+}
+.btn-danger:hover { -fx-background-color: #b91c1c; -fx-border-color: #b91c1c; }
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -c-muted;
+}
+.btn-ghost:hover { -fx-background-color: #eef0f3; -fx-text-fill: -c-text; }
+
+.btn-menu {
+    -fx-alignment: center-left;
+    -fx-padding: 12 16 12 16;
+}
+
+.hyperlink { -fx-text-fill: -c-accent; -fx-border-color: transparent; -fx-padding: 0; }
+.hyperlink:visited { -fx-text-fill: -c-accent; }
+
+/* ---------- Thông báo ---------- */
+.msg-error {
+    -fx-text-fill: -c-danger;
+    -fx-background-color: #fef2f2;
+    -fx-background-radius: 6;
+    -fx-padding: 8 10 8 10;
+}
+.msg-success {
+    -fx-text-fill: -c-success;
+    -fx-background-color: #f0fdf4;
+    -fx-background-radius: 6;
+    -fx-padding: 8 10 8 10;
+}
+
+/* ---------- Bảng ---------- */
+.table-view {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 12;
+    -fx-padding: 4;
+    -fx-table-cell-border-color: transparent;
+}
+.table-view .column-header-background {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12 12 0 0;
+}
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -c-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-size: 40;
+}
+.table-view .column-header .label {
+    -fx-text-fill: -c-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+.table-row-cell {
+    -fx-background-color: -c-surface;
+    -fx-border-color: transparent transparent #f0f1f3 transparent;
+    -fx-cell-size: 42;
+}
+.table-row-cell:hover { -fx-background-color: #f9fafb; }
+.table-row-cell:selected { -fx-background-color: -c-accent-soft; }
+.table-row-cell:selected .table-cell { -fx-text-fill: -c-text; }
+.table-cell { -fx-padding: 0 12 0 12; -fx-alignment: center-left; }
+.table-view .placeholder .label { -fx-text-fill: -c-muted; }
+.col-center { -fx-alignment: center; }
+
+/* ---------- Thanh tiến trình (đồng hồ lượt) ---------- */
+.progress-bar { -fx-accent: -c-accent; }
+.progress-bar > .track {
+    -fx-background-color: #e5e7eb;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+.progress-bar > .bar {
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+/* ---------- Hộp thoại ---------- */
+.dialog-pane {
+    -fx-background-color: -c-surface;
+}
+.dialog-pane > .header-panel {
+    -fx-background-color: -c-surface;
+    -fx-padding: 16 20 4 20;
+}
+.dialog-pane > .header-panel .label { -fx-font-size: 16px; -fx-font-weight: bold; }
+.dialog-pane > .content.label { -fx-padding: 8 20 8 20; -fx-text-fill: -c-muted; }
+
+/* =====================================================================
+   Màn chơi
+   ===================================================================== */
+.game-bg {
+    -fx-background-color: -c-bg;
+}
+.game-topbar {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-background-radius: 12;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 12;
+    -fx-padding: 10 16 10 16;
+}
+.player-card {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-background-radius: 12;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 12;
+    -fx-padding: 18;
+    -fx-min-width: 170;
+    -fx-pref-width: 170;
+}
+.player-role  { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -c-muted; }
+.player-name  { -fx-font-size: 17px; -fx-font-weight: bold; }
+.score-value  { -fx-font-size: 44px; -fx-font-weight: bold; }
+.board-panel {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-background-radius: 14;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 14;
+    -fx-padding: 18;
+}
+.turn-indicator { -fx-font-size: 18px; -fx-font-weight: bold; }
+.time-label { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -c-muted; -fx-min-width: 60; }
+.match-time { -fx-font-size: 22px; -fx-font-weight: bold; -fx-font-family: "Consolas", "Menlo", monospace; }
+.time-warning { -fx-text-fill: -c-danger; }
+
+/* Lá bài. Mặt sau là ảnh (assets/images/background/...); thiếu ảnh sẽ hiện dấu "?" trên nền này. */
+.memory-card {
+    -fx-background-color: #eef1f5;
+    -fx-background-radius: 10;
+    -fx-border-color: #d7dce3;
+    -fx-border-radius: 10;
+    -fx-padding: 4;
+    -fx-font-size: 28px;
+    -fx-text-fill: #9ca3af;
+    -fx-content-display: center;
+}
+.memory-card:hover { -fx-border-color: -c-accent; }
+.memory-card:disabled { -fx-opacity: 1; }
+
+.countdown-dim { -fx-background-color: rgba(17, 24, 39, 0.55); }

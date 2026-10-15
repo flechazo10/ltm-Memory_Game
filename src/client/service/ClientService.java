@@ -41,7 +41,9 @@ public class ClientService {
     private List<Player> cachedHistoryList;
     private String selectedPlayerName;
 
-    private boolean isConnected = false;
+    private volatile boolean isConnected = false;
+    private String serverHost;
+    private int serverPort;
     private Player currentPlayer;
     private MediaPlayer mediaPlayer;
     private boolean musicOn = true;
@@ -68,6 +70,8 @@ public class ClientService {
     }
 
     public void connect(String host, int port) throws IOException {
+        this.serverHost = host;
+        this.serverPort = port;
         socket = new Socket(host, port);
         out = new ObjectOutputStream(socket.getOutputStream());
         out.flush();
@@ -79,9 +83,15 @@ public class ClientService {
     }
 
     public void sendMessage(Message msg) {
+        if (!isConnected && !tryReconnect()) {
+            Platform.runLater(() -> AlertController.showAlert("Chưa kết nối",
+                    "Không kết nối được tới máy chủ. Hãy kiểm tra Server đã bật chưa rồi thử lại."));
+            return;
+        }
         try {
-            if (out != null && isConnected) {
+            synchronized (this) {
                 out.writeObject(msg);
+                out.reset();
                 out.flush();
             }
         } catch (IOException e) {
@@ -89,26 +99,38 @@ public class ClientService {
         }
     }
 
+    /** Thử kết nối lại tới server đã dùng lần trước (vd: lúc mở app server chưa bật). */
+    private boolean tryReconnect() {
+        if (serverHost == null) return false;
+        try {
+            connect(serverHost, serverPort);
+            return true;
+        } catch (IOException e) {
+            System.err.println("Kết nối lại thất bại: " + e.getMessage());
+            return false;
+        }
+    }
+
     private void listenServer() {
-        new Thread(() -> {
+        Thread listener = new Thread(() -> {
             try {
                 while (isConnected) {
                     Message msg = (Message) in.readObject();
                     if (msg == null) continue;
 
                     switch (msg.getType()) {
-                        case MessageType.LOGIN_SUCCESS:
+                        case LOGIN_SUCCESS:
                             currentPlayer = (Player) msg.getContent();
                             setupMusic();
                             Platform.runLater(this::showMainUI);
                             break;
 
-                        case MessageType.LOGIN_FAILURE:
+                        case LOGIN_FAILURE:
                             String err = (String) msg.getContent();
-                            Platform.runLater(() -> AlertController.showAlert("Login error", err));
+                            Platform.runLater(() -> AlertController.showAlert("Đăng nhập thất bại", err));
                             break;
 
-                        case MessageType.GET_PLAYERS:
+                        case GET_PLAYERS:
                             List<Player> players = (List<Player>) msg.getContent();
                             Platform.runLater(() -> {
                                 if (mainController != null) {
@@ -117,13 +139,13 @@ public class ClientService {
                             });
                             break;
 
-                        case MessageType.STATUS_UPDATE:
+                        case STATUS_UPDATE:
                             String statusMsg = (String) msg.getContent();
                             System.out.println("Status update: " + statusMsg);
                             sendMessage(new Message(MessageType.GET_PLAYERS, null));
                             break;
 
-                        case MessageType.INVITE_INCOMING:
+                        case INVITE_INCOMING:
                             Object[] inviteContent = (Object[]) msg.getContent();
                             Player fromPlayer = (Player) inviteContent[0];
                             String category = (String) inviteContent[1];
@@ -134,11 +156,11 @@ public class ClientService {
                             });
                             break;
 
-                        case MessageType.INVITE_RESULT:
+                        case INVITE_RESULT:
                             handleInviteResult(msg);
                             break;
 
-                        case MessageType.INVITE_ERROR:
+                        case INVITE_ERROR:
                             String inviteErr = (String) msg.getContent();
                             Platform.runLater(() -> {
                                 if (mainController != null) {
@@ -147,23 +169,23 @@ public class ClientService {
                             });
                             break;
 
-                        case MessageType.LOGOUT_SUCCESS:
+                        case LOGOUT_SUCCESS:
                             Platform.runLater(() -> {
-                                AlertController.showAlert("Logout", "Successfully logged out.");
+                                AlertController.showAlert("Đăng xuất", "Bạn đã đăng xuất.");
                                 showLoginUI();
                                 setMusicOn(false);
                             });
                             break;
 
-                        case MessageType.SIGN_UP_SUCCESS:
+                        case SIGN_UP_SUCCESS:
                             String successMsg = (String) msg.getContent();
                             Platform.runLater(() -> {
-                                AlertController.showAlert("Sign Up Success", successMsg);
+                                AlertController.showAlert("Đăng ký thành công", "Tạo tài khoản thành công, mời bạn đăng nhập.");
                                 showLoginUI();
                             });
                             break;
 
-                        case MessageType.SIGN_UP_FAILURE:
+                        case SIGN_UP_FAILURE:
                             String signUpErr = (String) msg.getContent();
                             Platform.runLater(() -> {
                                 if (signUpController != null) {
@@ -172,77 +194,77 @@ public class ClientService {
                             });
                             break;
 
-                        case MessageType.GET_RANKING_SUCCESS:
+                        case GET_RANKING_SUCCESS:
                             List<Player> playersRanking = (List<Player>) msg.getContent();
                             Platform.runLater(() -> showRankingUI(new ArrayList<>(playersRanking)));
                             break;
 
-                        case MessageType.GET_HISTORY_SUCCESS:
+                        case GET_HISTORY_SUCCESS:
                             List<Player> playersHistory = (List<Player>) msg.getContent();
                             Platform.runLater(() -> showHistoryUI(new ArrayList<>(playersHistory)));
                             break;
 
-                        case MessageType.GET_HISTORY_DETAIL_SUCCESS:
+                        case GET_HISTORY_DETAIL_SUCCESS:
                             Object[] detailContent = (Object[]) msg.getContent();
                             List<DetailMatch> details = (List<DetailMatch>) detailContent[0];
                             Platform.runLater(() -> showHistoryDetailUI(details));
                             break;
 
-                        case MessageType.ONLINE_LIST_UPDATE:
+                        case ONLINE_LIST_UPDATE:
                             handleOnlineListUpdate(msg);
                             break;
 
-                        case MessageType.GAME_COUNTDOWN:
+                        case GAME_COUNTDOWN:
                             handleGameCountdown(msg);
                             break;
 
-                        case MessageType.START_GAME:
+                        case START_GAME:
                             handleStartGame(msg);
                             break;
 
-                        case MessageType.FLIP_CARD_RESULT:
+                        case FLIP_CARD_RESULT:
                             handleShowCardFlip(msg);
                             break;
 
-                        case MessageType.CARD_MATCHED_RESULT:
+                        case CARD_MATCHED_RESULT:
                             handleCardsMatched(msg);
                             break;
 
-                        case MessageType.CARD_NOT_MATCHED_RESULT:
+                        case CARD_NOT_MATCHED_RESULT:
                             handleCardsNotMatched(msg);
                             break;
 
-                        case MessageType.TURN_CHANGED:
+                        case TURN_CHANGED:
                             handleTurnChanged(msg);
                             break;
 
-                        case MessageType.TURN_TIMEOUT:
+                        case TURN_TIMEOUT:
                             handleTurnTimeout(msg);
                             break;
 
-                        case MessageType.KICK_DUE_TO_TIMEOUT:
+                        case KICK_DUE_TO_TIMEOUT:
                             handleKickDueToTimeout(msg);
                             break;
 
-                        case MessageType.GAME_END:
+                        case GAME_END:
                             handleGameEnd(msg);
                             break;
 
-                        case MessageType.PLAY_AGAIN_REQUEST:
+                        case PLAY_AGAIN_REQUEST:
                             handlePlayAgainRequest(msg);
                             break;
 
-                        case MessageType.REJECT_PLAY_AGAIN:
-                        case MessageType.RETURN_TO_LOBBY:
+                        case REJECT_PLAY_AGAIN:
+                        case RETURN_TO_LOBBY:
                             handleReturnToLobby(msg);
                             break;
 
-                        case MessageType.QUIT_GAME_SUCCESS:
+                        case QUIT_GAME_SUCCESS:
                             handleQuitGame(msg);
                             break;
 
-                        case MessageType.ERROR:
-                            System.err.println("Server Error: " + msg.getContent());
+                        case ERROR:
+                            handleServerError(msg);
                             break;
 
                         default:
@@ -250,16 +272,20 @@ public class ClientService {
                     }
                 }
             } catch (Exception e) {
+                boolean unexpected = isConnected;   // close() chủ động sẽ đặt isConnected = false trước
                 System.err.println("Mất kết nối tới Server: " + e.getMessage());
-                handleDisconnection();
-            } finally {
                 close();
+                if (unexpected) {
+                    handleDisconnection();
+                }
             }
-        }).start();
+        }, "server-listener");
+        listener.setDaemon(true);
+        listener.start();
     }
 
     public void close() {
-        isConnected = false;
+        isConnected = false;   // đặt trước để luồng lắng nghe biết đây là đóng chủ động
         try {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
@@ -371,6 +397,7 @@ public class ClientService {
     private void handleReturnToLobby(Message msg) {
         String notice = msg.getContent() != null ? msg.getContent().toString() : "Trận đấu kết thúc, quay về sảnh chính.";
         Platform.runLater(() -> {
+            leaveGameRoom();
             showMainUI();
             if (mainController != null) {
                 mainController.showAlert("Thông báo", notice);
@@ -381,6 +408,7 @@ public class ClientService {
     private void handleQuitGame(Message msg) {
         String content = (String) msg.getContent();
         Platform.runLater(() -> {
+            leaveGameRoom();
             showMainUI();
             if (mainController != null) {
                 mainController.showAlert("Thông báo", content);
@@ -416,11 +444,37 @@ public class ClientService {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
             alert.setTitle("Lỗi kết nối");
             alert.setHeaderText("Mất kết nối với máy chủ");
-            alert.setContentText("Không thể kết nối đến Server hoặc kết nối đã bị đóng. Vui lòng đăng nhập lại.");
+            alert.setContentText("Kết nối tới Server đã bị đóng. Hãy bật lại Server rồi đăng nhập lại.");
             alert.showAndWait();
 
+            leaveGameRoom();
             showLoginUI();
         });
+    }
+
+    private void handleServerError(Message msg) {
+        String error = msg.getContent() != null ? msg.getContent().toString() : "Lỗi không xác định.";
+        System.err.println("Server Error: " + error);
+        Platform.runLater(() -> {
+            // Đang ở bàn chơi đã kết thúc mà phòng phía server đã đóng (vd: bấm "Chơi tiếp" quá muộn) -> về sảnh.
+            if (gameRoomController != null && gameRoomController.isGameOver()) {
+                leaveGameRoom();
+                showMainUI();
+                if (mainController != null) {
+                    mainController.showAlert("Thông báo", "Phòng chơi đã đóng, bạn được đưa về sảnh chính.");
+                }
+            } else {
+                AlertController.showAlert("Lỗi", error);
+            }
+        });
+    }
+
+    /** Đóng các hộp thoại còn mở ở bàn chơi trước khi chuyển màn, tránh gửi thêm lệnh thừa lên server. */
+    private void leaveGameRoom() {
+        if (gameRoomController != null) {
+            gameRoomController.closeOpenDialogs();
+            gameRoomController = null;
+        }
     }
 
     // --- CÁC HÀM ĐIỀU HƯỚNG GIAO DIỆN (UI ROUTING) ---
@@ -439,7 +493,7 @@ public class ClientService {
                 scene.getStylesheets().add(cssLocation.toExternalForm());
             }
 
-            primaryStage.setTitle("Sign Up");
+            primaryStage.setTitle("Lật Bài Online - Đăng ký");
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
@@ -457,7 +511,7 @@ public class ClientService {
             loginController.setClient(this);
 
             primaryStage.setScene(scene);
-            primaryStage.setTitle("Login");
+            primaryStage.setTitle("Lật Bài Online - Đăng nhập");
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -474,7 +528,7 @@ public class ClientService {
             mainController.setClient(this);
             mainController.setUserLogin(currentPlayer);
 
-            primaryStage.setTitle("Main UI");
+            primaryStage.setTitle("Lật Bài Online - Sảnh chờ");
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
@@ -497,7 +551,7 @@ public class ClientService {
                 scene.getStylesheets().add(cssLocation.toExternalForm());
             }
 
-            primaryStage.setTitle("Ranking UI");
+            primaryStage.setTitle("Lật Bài Online - Bảng xếp hạng");
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
@@ -515,12 +569,12 @@ public class ClientService {
             historyController = loader.getController();
             historyController.setClient(this);
             if (currentPlayer != null) {
-                historyController.setWelcomeText("History");
+                historyController.setWelcomeText("Lịch sử đấu");
             }
             historyController.setHistoryList(historyList);
 
             primaryStage.setScene(scene);
-            primaryStage.setTitle("History UI");
+            primaryStage.setTitle("Lật Bài Online - Lịch sử đấu");
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -545,7 +599,7 @@ public class ClientService {
             }
 
             primaryStage.setScene(scene);
-            primaryStage.setTitle("History Detail - " + playerName);
+            primaryStage.setTitle("Lật Bài Online - Lịch sử: " + playerName);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -566,7 +620,7 @@ public class ClientService {
                 scene.getStylesheets().add(cssLocation.toExternalForm());
             }
 
-            primaryStage.setTitle("Game Room");
+            primaryStage.setTitle("Lật Bài Online - Trận đấu");
             primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
@@ -605,7 +659,17 @@ public class ClientService {
 
     private void setupMusic() {
         try {
-            String musicPath = Objects.requireNonNull(getClass().getResource(MUSIC_PATH)).toExternalForm();
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+                mediaPlayer = null;
+            }
+            URL musicUrl = getClass().getResource(MUSIC_PATH);
+            if (musicUrl == null) {
+                System.err.println("Chưa có file nhạc " + MUSIC_PATH + " (xem src/assets/README.md)");
+                return;
+            }
+            String musicPath = musicUrl.toExternalForm();
             Media media = new Media(musicPath);
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setVolume(0.3);

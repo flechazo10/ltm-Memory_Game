@@ -132,6 +132,7 @@ public class GameRoom {
                 gameData.put("player2", player2Handler.getPlayer());
                 gameData.put("firstTurnPlayerId", firstTurnPlayerId);
                 gameData.put("theme", selectedTheme);
+                gameData.put("matchTimeLimit", MATCH_TIMEOUT_MINUTES * 60); // giây, để client hiện đồng hồ trận
 
                 sendToBoth(new Message(MessageType.START_GAME, gameData));
 
@@ -527,7 +528,8 @@ public class GameRoom {
         if (this.cleanupTask != null) {
             this.cleanupTask.cancel(false);
         }
-        sendToBoth(new Message(MessageType.RETURN_TO_LOBBY, "Đối thủ đã từ chối chơi lại."));
+        // Không gửi RETURN_TO_LOBBY ở đây: client bấm "Về sảnh" gửi tiếp QUIT_GAME,
+        // ClientHandler sẽ báo đúng cho từng người ("Bạn đã thoát" / "Đối thủ đã rời phòng").
         cleanupAndCloseRoom();
     }
 
