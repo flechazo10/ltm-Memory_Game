@@ -1,0 +1,14 @@
+/* Bảng xếp hạng + lịch sử (dùng chung style.css) */
+.stat-card {
+    -fx-background-color: -c-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -c-border;
+    -fx-border-radius: 12;
+    -fx-padding: 14 18 14 18;
+    -fx-min-width: 140;
+}
+.stat-value { -fx-font-size: 26px; -fx-font-weight: bold; }
+.stat-label { -fx-font-size: 12px; -fx-text-fill: -c-muted; -fx-font-weight: bold; }
+.stat-win  .stat-value { -fx-text-fill: -c-success; }
+.stat-lose .stat-value { -fx-text-fill: -c-danger; }
+.stat-draw .stat-value { -fx-text-fill: -c-warning; }

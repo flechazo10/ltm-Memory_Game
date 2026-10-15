@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="client.controller.SignUpController"
+           styleClass="app-root" prefWidth="1000.0" prefHeight="680.0"
+           stylesheets="@style.css, @auth.css">
+    <children>
+        <VBox styleClass="auth-card" spacing="14.0" maxWidth="400.0" maxHeight="-Infinity">
+            <children>
+                <Label styleClass="auth-logo" text="LB"/>
+                <VBox spacing="4.0">
+                    <children>
+                        <Label styleClass="app-title" text="Tạo tài khoản"/>
+                        <Label styleClass="muted" wrapText="true" text="Tên đăng nhập tối thiểu 3 ký tự."/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6.0">
+                    <VBox.margin><Insets top="8.0"/></VBox.margin>
+                    <children>
+                        <Label styleClass="field-label" text="Tên đăng nhập"/>
+                        <TextField fx:id="txtUsername" promptText="Nhập tên đăng nhập"/>
+                    </children>
+                </VBox>
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="field-label" text="Mật khẩu"/>
+                        <PasswordField fx:id="txtPassword" promptText="Nhập mật khẩu"/>
+                    </children>
+                </VBox>
+                <VBox spacing="6.0">
+                    <children>
+                        <Label styleClass="field-label" text="Nhập lại mật khẩu"/>
+                        <PasswordField fx:id="txtConfirmPassword" promptText="Nhập lại mật khẩu" onAction="#handleSignUp"/>
+                    </children>
+                </VBox>
+
+                <Label fx:id="lblError" styleClass="msg-error" wrapText="true" maxWidth="Infinity"
+                       visible="false" managed="false"/>
+                <Label fx:id="lblSuccess" styleClass="msg-success" wrapText="true" maxWidth="Infinity"
+                       visible="false" managed="false"/>
+
+                <Button styleClass="btn-primary" text="Đăng ký" defaultButton="true"
+                        maxWidth="Infinity" onAction="#handleSignUp">
+                    <VBox.margin><Insets top="6.0"/></VBox.margin>
+                </Button>
+
+                <HBox alignment="CENTER" spacing="6.0">
+                    <children>
+                        <Label styleClass="muted" text="Đã có tài khoản?"/>
+                        <Hyperlink text="Quay lại đăng nhập" onAction="#handleBackToLogin"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>

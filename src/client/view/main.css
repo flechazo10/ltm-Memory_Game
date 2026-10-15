@@ -1,0 +1,56 @@
+/* Sảnh chờ + toàn bộ hộp thoại (mời đấu, kết quả, thông báo).
+   File này được nạp riêng cho từng hộp thoại nên tự chứa đủ style, không phụ thuộc style.css. */
+.my-alert {
+    -fx-background-color: #ffffff;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-padding: 4;
+}
+.my-alert > .header-panel {
+    -fx-background-color: #ffffff;
+    -fx-padding: 18 22 6 22;
+}
+.my-alert > .header-panel .label {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+.my-alert > .header-panel > .graphic-container { -fx-padding: 0; }
+.my-alert > .content { -fx-padding: 8 22 12 22; }
+.my-alert > .content.label, .my-alert .label { -fx-text-fill: #374151; }
+.my-alert .choice-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e5e9;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 4 6 4 6;
+}
+.my-alert > .button-bar > .container { -fx-padding: 6 22 18 22; }
+.my-alert .button {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e5e9;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: #111827;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+.my-alert .button:hover { -fx-background-color: #f9fafb; }
+.my-alert .button:default {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #2563eb;
+    -fx-text-fill: white;
+}
+.my-alert .button:default:hover { -fx-background-color: #1d4ed8; }
+
+/* Sảnh chờ */
+.side-panel { -fx-spacing: 10; }
+.tip-text { -fx-text-fill: -c-muted; -fx-font-size: 12px; -fx-wrap-text: true; }
+.welcome-chip {
+    -fx-background-color: -c-accent-soft;
+    -fx-background-radius: 999;
+    -fx-padding: 6 12 6 12;
+    -fx-text-fill: -c-accent-dark;
+    -fx-font-weight: bold;
+}

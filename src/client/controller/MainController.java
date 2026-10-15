@@ -61,7 +61,7 @@ public class MainController {
 
     public void setUserLogin(Player userLogin) {
         this.userLogin = userLogin;
-        lblWelcome.setText("Welcome, " + userLogin.getUsername());
+        lblWelcome.setText("Xin chào, " + userLogin.getUsername() + " · " + formatScore(userLogin.getTotalScore()) + " điểm");
     }
 
     @FXML
@@ -110,14 +110,14 @@ public class MainController {
                 } else {
                     status = status.toUpperCase();
                     if (status.equals(String.valueOf(Status.ONLINE))) {
-                        setText("Online");
-                        setStyle("-fx-text-fill: #00FF99; -fx-font-weight: bold;");
+                        setText("Rảnh");
+                        setStyle("-fx-text-fill: #16a34a; -fx-font-weight: bold;");
                     } else if (status.equals(String.valueOf(Status.OFFLINE))) {
                         setText("Offline");
-                        setStyle("-fx-text-fill: #AAAAAA; -fx-font-weight: normal;");
+                        setStyle("-fx-text-fill: #9ca3af; -fx-font-weight: normal;");
                     } else {
-                        setText("In Game");
-                        setStyle("-fx-text-fill: #efd967; -fx-font-weight: bold;");
+                        setText("Đang chơi");
+                        setStyle("-fx-text-fill: #d97706; -fx-font-weight: bold;");
                     }
                     setAlignment(Pos.CENTER);
                 }
@@ -142,7 +142,7 @@ public class MainController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/client/view/LogoutModal.fxml"));
             Parent root = loader.load();
             Scene scene = new Scene(root);
-            scene.setFill(Color.ALICEBLUE);
+            scene.setFill(Color.TRANSPARENT);
 
             LogoutController logoutController = loader.getController();
             Stage modalStage = new Stage();
@@ -261,7 +261,12 @@ public class MainController {
     }
 
     private void loadMusic() {
-        String path = getClass().getResource(isMusicOn ? "/assets/images/background/btn_on_music.png" : "/assets/images/background/btn_off_music.png").toString();
-        btnMusic.setStyle("-fx-background-image: url('" + path + "'); -fx-background-size: cover; -fx-background-radius: 50%; -fx-background-repeat: no-repeat; -fx-background-position: center;");
+        if (btnMusic != null) {
+            btnMusic.setText(isMusicOn ? "Nhạc: Bật" : "Nhạc: Tắt");
+        }
+    }
+
+    private static String formatScore(double score) {
+        return score == Math.floor(score) ? String.valueOf((long) score) : String.valueOf(score);
     }
 }

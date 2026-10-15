@@ -32,6 +32,7 @@ public class GameRoomController implements Initializable {
     private static final int GRID_COLS = 6;
     private static final int CARD_SIZE = 90;
     private static final int TURN_TIME_SECONDS = 15;
+    private static final int DEFAULT_MATCH_SECONDS = 15 * 60;   // trùng GameRoom.MATCH_TIMEOUT_MINUTES
     private static final String BACK_CARD_IMAGE_PATH = "/assets/images/background/back_card.jpg";
     private String currentBackCardImagePath = BACK_CARD_IMAGE_PATH;
 
@@ -84,9 +85,13 @@ public class GameRoomController implements Initializable {
     @FXML private Label txtScore2Value;
     @FXML private Label lblTurnIndicator;
     @FXML private AnchorPane background;
+    @FXML private Label lblMatchTime;
 
     private boolean isMusicOn;
     private Timeline turnTimeline;
+    private Timeline matchTimeline;
+    private Alert resultAlert;
+    private boolean leavingRoom = false;
 
     @FXML private StackPane countdownOverlay;
     @FXML private Label countdownLabel;
@@ -124,21 +129,24 @@ public class GameRoomController implements Initializable {
             txtPlayer2.setText(this.opponentPlayer.getUsername());
             txtScore1Value.setText("0");
             txtScore2Value.setText("0");
+            applyPlayerColors();
         });
     }
 
     private void setupMusic() {
-        try {
-            if (isMusicOn) {
-                String pathPlay = getClass().getResource("/assets/images/background/btn_on_music.png").toString();
-                btnMusic.setStyle("-fx-background-image: url('" + pathPlay + "'); -fx-background-size: cover; -fx-background-radius: 50%; -fx-background-repeat: no-repeat; -fx-background-position: center;");
-            } else {
-                String pathPause = getClass().getResource("/assets/images/background/btn_off_music.png").toString();
-                btnMusic.setStyle("-fx-background-image: url('" + pathPause + "'); -fx-background-size: cover; -fx-background-radius: 50%; -fx-background-repeat: no-repeat; -fx-background-position: center;");
-            }
-        } catch (Exception e) {
-            System.err.println("Lỗi tải nhạc: " + e.getMessage());
+        if (btnMusic != null) {
+            btnMusic.setText(isMusicOn ? "Nhạc: Bật" : "Nhạc: Tắt");
         }
+    }
+
+    /** Server gán người mời (player1) màu ĐỎ, người được mời (player2) màu XANH. */
+    private void applyPlayerColors() {
+        if (userPlayer == null || serverPlayer1Id == 0) return;
+        boolean iAmPlayer1 = userPlayer.getId() == serverPlayer1Id;
+        String red = "-fx-text-fill: #dc2626;";
+        String blue = "-fx-text-fill: #2563eb;";
+        txtPlayer1.setStyle(iAmPlayer1 ? red : blue);
+        txtPlayer2.setStyle(iAmPlayer1 ? blue : red);
     }
 
     private void changeBackgroundByTheme(String themeName) {
@@ -190,6 +198,8 @@ public class GameRoomController implements Initializable {
                     changeBackCardByTheme(theme);
                 }
                 updateTurnState(firstTurnPlayerId);
+                Object limit = gameData.get("matchTimeLimit");
+                startMatchCountdown(limit instanceof Integer ? (Integer) limit : DEFAULT_MATCH_SECONDS);
                 showCountdownStart();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -237,7 +247,7 @@ public class GameRoomController implements Initializable {
 
     private void showScoreIncreaseAnimation(Label scoreLabel, int increment) {
         Label plusLabel = new Label("+" + increment);
-        plusLabel.setStyle("-fx-text-fill: #00FF00; -fx-font-size: 30px; -fx-font-weight: bold;");
+        plusLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 26px; -fx-font-weight: bold;");
 
         StackPane parent = (StackPane) scoreLabel.getParent();
         parent.getChildren().add(plusLabel);
@@ -275,7 +285,9 @@ public class GameRoomController implements Initializable {
         Platform.runLater(() -> {
             isGameOver = true;
             if (turnTimeline != null) turnTimeline.stop();
+            if (matchTimeline != null) matchTimeline.stop();
             tblCard.setDisable(true);
+            if (leavingRoom) return;
 
             int winnerId = (int) resultData.get("winnerId");
             String text;
@@ -333,6 +345,7 @@ public class GameRoomController implements Initializable {
     }
 
     private void resetGameState() {
+        if (matchTimeline != null) matchTimeline.stop();
         isMyTurn = false;
         isProcessingMove = false;
         isGameOver = false;
@@ -353,7 +366,7 @@ public class GameRoomController implements Initializable {
         isMyTurn = (userPlayer != null && userPlayer.getId() == currentPlayerId);
 
         lblTurnIndicator.setText(isMyTurn ? "LƯỢT CỦA BẠN" : "LƯỢT ĐỐI THỦ");
-        lblTurnIndicator.setTextFill(isMyTurn ? Color.web("#39FF14") : Color.web("#FF3131"));
+        lblTurnIndicator.setTextFill(isMyTurn ? Color.web("#16a34a") : Color.web("#dc2626"));
 
         tblCard.setDisable(false);
 
@@ -368,7 +381,7 @@ public class GameRoomController implements Initializable {
         final int[] remainingTime = {TURN_TIME_SECONDS};
         timeLabel.setText(remainingTime[0] + "s");
         timeBar.setProgress(1.0);
-        timeBar.setStyle("-fx-accent: #3d9496;");
+        timeBar.setStyle("-fx-accent: #2563eb;");
 
         turnTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             remainingTime[0]--;
@@ -376,9 +389,9 @@ public class GameRoomController implements Initializable {
             timeBar.setProgress((double) remainingTime[0] / TURN_TIME_SECONDS);
 
             if (remainingTime[0] <= 3) {
-                timeBar.setStyle("-fx-accent: red;");
+                timeBar.setStyle("-fx-accent: #dc2626;");
             } else if (remainingTime[0] <= 6) {
-                timeBar.setStyle("-fx-accent: orange;");
+                timeBar.setStyle("-fx-accent: #d97706;");
             }
 
             if (remainingTime[0] <= 0) {
@@ -388,6 +401,46 @@ public class GameRoomController implements Initializable {
         }));
         turnTimeline.setCycleCount(TURN_TIME_SECONDS);
         turnTimeline.play();
+    }
+
+    /** Đồng hồ tổng 15 phút của trận (chỉ để hiển thị; Server mới là bên quyết định hết giờ). */
+    private void startMatchCountdown(int totalSeconds) {
+        if (matchTimeline != null) matchTimeline.stop();
+        final int[] remaining = {totalSeconds};
+        updateMatchTimeLabel(remaining[0]);
+
+        matchTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            remaining[0] = Math.max(0, remaining[0] - 1);
+            updateMatchTimeLabel(remaining[0]);
+            if (remaining[0] <= 0) {
+                matchTimeline.stop();
+            }
+        }));
+        matchTimeline.setCycleCount(totalSeconds);
+        matchTimeline.play();
+    }
+
+    private void updateMatchTimeLabel(int seconds) {
+        if (lblMatchTime == null) return;
+        lblMatchTime.setText(String.format("%02d:%02d", seconds / 60, seconds % 60));
+        lblMatchTime.getStyleClass().remove("time-warning");
+        if (seconds <= 60) {
+            lblMatchTime.getStyleClass().add("time-warning");
+        }
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    /** Gọi khi rời bàn chơi (về sảnh / mất kết nối): dừng đồng hồ và đóng hộp thoại kết quả nếu đang mở. */
+    public void closeOpenDialogs() {
+        leavingRoom = true;
+        if (turnTimeline != null) turnTimeline.stop();
+        if (matchTimeline != null) matchTimeline.stop();
+        if (resultAlert != null && resultAlert.isShowing()) {
+            resultAlert.close();
+        }
     }
 
     private void createGameBoard() {
@@ -406,11 +459,15 @@ public class GameRoomController implements Initializable {
     private Button createCardButton(int index) {
         Button card = new Button();
         card.setPrefSize(CARD_SIZE, CARD_SIZE);
-        card.setStyle("-fx-padding: 0; -fx-background-color: transparent; -fx-cursor: hand;");
+        card.setMinSize(CARD_SIZE, CARD_SIZE);
+        card.getStyleClass().add("memory-card");
         card.setUserData(index);
 
         ImageView imageView = createImageViewFromPath(currentBackCardImagePath);
         card.setGraphic(imageView);
+        if (imageView.getImage() == null) {
+            card.setText("?");   // chưa có ảnh mặt sau -> hiện dấu ? thay cho ảnh
+        }
         card.setOnAction(event -> handleCardClick(index, card));
 
         card.setOnMouseEntered(e -> {
@@ -432,12 +489,14 @@ public class GameRoomController implements Initializable {
         String base64Image = imageCache.get(matrixConfig[index]);
         ImageView frontView = createImageViewFromBase64(base64Image);
         createFlipAnimation(card, frontView, onFinished).play();
+        card.setText(null);
     }
 
     private void flipCardBackAnimation(int index) {
         findCardButton(index).ifPresent(card -> {
             ImageView backView = createImageViewFromPath(currentBackCardImagePath);
             createFlipAnimation(card, backView, null).play();
+            card.setText(backView.getImage() == null ? "?" : null);
         });
     }
 
@@ -581,7 +640,7 @@ public class GameRoomController implements Initializable {
     @FXML
     private void onHomeButton(ActionEvent event) {
         if (isGameOver) {
-            goHome();
+            leaveAfterGame();
             return;
         }
 
@@ -603,6 +662,13 @@ public class GameRoomController implements Initializable {
         });
     }
 
+    /** Sau khi trận kết thúc: báo không chơi lại rồi rời phòng. */
+    private void leaveAfterGame() {
+        if (leavingRoom) return;
+        app.sendMessage(new Message(MessageType.REJECT_PLAY_AGAIN, userPlayer));
+        goHome();
+    }
+
     private void goHome() {
         try {
             Object[] sendContent = {userPlayer, opponentPlayer};
@@ -614,13 +680,9 @@ public class GameRoomController implements Initializable {
 
     @FXML
     private void onMusicButton() {
-        if (isMusicOn) {
-            app.setMusicOn(false);
-            btnMusic.setStyle("-fx-background-image: url('/assets/images/background/btn_off_music.png'); -fx-background-size: cover; -fx-background-radius: 50%; -fx-background-repeat: no-repeat; -fx-background-position: center;");
-        } else {
-            app.setMusicOn(true);
-            btnMusic.setStyle("-fx-background-image: url('/assets/images/background/btn_on_music.png'); -fx-background-size: cover; -fx-background-radius: 50%; -fx-background-repeat: no-repeat; -fx-background-position: center;");
-        }
+        isMusicOn = !isMusicOn;
+        app.setMusicOn(isMusicOn);
+        setupMusic();
     }
 
     private ImageView createImageViewFromBase64(String base64) {
@@ -640,8 +702,13 @@ public class GameRoomController implements Initializable {
 
     private ImageView createImageViewFromPath(String path) {
         ImageView imageView = new ImageView();
+        String realPath = path != null ? path : currentBackCardImagePath;
+        URL url = getClass().getResource(realPath);
+        if (url == null) {
+            return imageView;   // chưa có ảnh -> trả về ImageView rỗng, không làm crash
+        }
         try {
-            Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream(path != null ? path : currentBackCardImagePath)));
+            Image image = new Image(url.toExternalForm());
             imageView.setImage(image);
             imageView.setFitWidth(CARD_SIZE - 10);
             imageView.setFitHeight(CARD_SIZE - 10);
@@ -687,16 +754,17 @@ public class GameRoomController implements Initializable {
         ButtonType homeButton = new ButtonType("Về sảnh chính", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(continueBtn, homeButton);
 
-        alert.showAndWait().ifPresentOrElse(response -> {
-            if (response == continueBtn) {
-                app.sendMessage(new Message(MessageType.PLAY_AGAIN_REQUEST, userPlayer));
-            } else {
-                app.sendMessage(new Message(MessageType.REJECT_PLAY_AGAIN, userPlayer));
-                goHome();
-            }
-        }, () -> {
-            app.sendMessage(new Message(MessageType.REJECT_PLAY_AGAIN, userPlayer));
-            goHome();
-        });
+        resultAlert = alert;
+        Optional<ButtonType> response = alert.showAndWait();
+        resultAlert = null;
+        if (leavingRoom) return;   // đã bị đưa về sảnh trong lúc hộp thoại đang mở
+
+        if (response.isPresent() && response.get() == continueBtn) {
+            app.sendMessage(new Message(MessageType.PLAY_AGAIN_REQUEST, userPlayer));
+            lblTurnIndicator.setText("ĐANG CHỜ ĐỐI THỦ...");
+            lblTurnIndicator.setTextFill(Color.web("#6b7280"));
+        } else {
+            leaveAfterGame();
+        }
     }
 }
