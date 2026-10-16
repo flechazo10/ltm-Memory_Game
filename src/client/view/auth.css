@@ -1,29 +1,28 @@
 /* Màn Đăng nhập / Đăng ký / hộp thoại Đăng xuất (dùng chung style.css) */
 .auth-card {
-    -fx-background-color: -c-surface;
-    -fx-background-radius: 16;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 16;
-    -fx-padding: 36 40 32 40;
-    -fx-effect: dropshadow(gaussian, rgba(17, 24, 39, 0.08), 24, 0, 0, 6);
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 10 4;
+    -fx-background-radius: 20, 16;
+    -fx-padding: 32 38 38 38;
 }
 .auth-logo {
-    -fx-background-color: -c-accent;
-    -fx-background-radius: 12;
-    -fx-min-width: 48; -fx-min-height: 48;
-    -fx-max-width: 48; -fx-max-height: 48;
+    -fx-background-color: -k-ink, linear-gradient(to bottom, -k-orange 0%, -k-orange 80%, #d98a0c 81%, #d98a0c 100%);
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 14, 11;
+    -fx-min-width: 58; -fx-min-height: 58;
+    -fx-max-width: 58; -fx-max-height: 58;
+    -fx-padding: 0 0 4 0;
     -fx-alignment: center;
     -fx-text-fill: white;
     -fx-font-size: 22px;
     -fx-font-weight: bold;
 }
-.status-text { -fx-text-fill: -c-muted; -fx-font-size: 12px; }
+.status-text { -fx-text-fill: -k-muted; -fx-font-size: 12px; }
 
 /* Hộp thoại đăng xuất (cửa sổ trong suốt) */
 .modal-card {
-    -fx-background-color: -c-surface;
-    -fx-background-radius: 14;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 14;
-    -fx-padding: 24;
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 10 4;
+    -fx-background-radius: 18, 14;
+    -fx-padding: 22 24 28 24;
 }

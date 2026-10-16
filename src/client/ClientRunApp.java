@@ -2,7 +2,6 @@ package client;
 
 import client.service.ClientService;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
@@ -47,8 +46,6 @@ public class ClientRunApp extends Application {
         if (clientService != null) {
             clientService.close();
         }
-        Platform.exit();
-        System.exit(0);
     }
 
     public static void main(String[] args) {

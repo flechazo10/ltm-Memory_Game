@@ -22,8 +22,8 @@
                 <Label styleClass="brand" text="Lật Bài Online"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="lblWelcome" styleClass="welcome-chip" text="Xin chào"/>
-                <Button fx:id="btnMusic" styleClass="btn-ghost" text="Nhạc: Bật" onAction="#onMusic"/>
-                <Button styleClass="btn-ghost" text="Đăng xuất" onAction="#onLogout"/>
+                <Button fx:id="btnMusic" styleClass="btn-yellow" text="Nhạc: Bật" onAction="#onMusic"/>
+                <Button styleClass="btn-danger" text="Đăng xuất" onAction="#onLogout"/>
             </children>
         </HBox>
     </top>
@@ -41,7 +41,7 @@
                                 <Label styleClass="muted" text="Nhấn vào một người đang rảnh để gửi lời thách đấu."/>
                             </children>
                         </VBox>
-                        <Button text="Làm mới" onAction="#onRefresh"/>
+                        <Button styleClass="btn-green" text="Làm mới" onAction="#onRefresh"/>
                     </children>
                 </HBox>
                 <TableView fx:id="tblPlayers" VBox.vgrow="ALWAYS">
@@ -70,7 +70,7 @@
                     <children>
                         <Label styleClass="section-title" text="Menu"/>
                         <Button styleClass="btn-primary, btn-menu" text="Bảng xếp hạng" maxWidth="Infinity" onAction="#onRanking"/>
-                        <Button styleClass="btn-menu" text="Lịch sử đấu" maxWidth="Infinity" onAction="#onHistory"/>
+                        <Button styleClass="btn-green, btn-menu" text="Lịch sử đấu" maxWidth="Infinity" onAction="#onHistory"/>
                     </children>
                 </VBox>
                 <VBox styleClass="panel" spacing="8.0">

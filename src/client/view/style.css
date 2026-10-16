@@ -1,240 +1,306 @@
 /* =====================================================================
-   Lật Bài Online - bộ giao diện sáng, tối giản
-   Đổi màu cả app: sửa các biến -c-... trong .root bên dưới.
+   Lật Bài Online - giao diện kiểu game casual (phong cách Kenney UI)
+   Viền đen đậm, nút nổi 3D, màu tươi. Không dùng ảnh: toàn bộ vẽ bằng CSS.
+
+   Màu chính (đổi ở đây là đổi cả app):
+     xanh dương #3b8fe8 | xanh lá #4cbb3a | đỏ #e84b3b | vàng #f5c623
+     cam #f5a623 | viền #3a3a3a | panel kem #fff8e6
    ===================================================================== */
 
 .root {
-    -c-bg: #f4f5f7;          /* nền app */
-    -c-surface: #ffffff;     /* khối / thẻ */
-    -c-border: #e2e5e9;
-    -c-text: #111827;
-    -c-muted: #6b7280;
-    -c-accent: #2563eb;      /* màu nhấn chính */
-    -c-accent-dark: #1d4ed8;
-    -c-accent-soft: #eff4ff;
-    -c-danger: #dc2626;
-    -c-success: #16a34a;
-    -c-warning: #d97706;
+    -k-ink: #3a3a3a;          /* viền + bóng */
+    -k-cream: #fff8e6;        /* nền panel */
+    -k-blue: #3b8fe8;
+    -k-blue-dark: #2a6fc0;
+    -k-green: #4cbb3a;
+    -k-green-dark: #369227;
+    -k-red: #e84b3b;
+    -k-red-dark: #c0362a;
+    -k-yellow: #f5c623;
+    -k-yellow-dark: #d9a90c;
+    -k-orange: #f5a623;
+    -k-muted: #7a6a40;
+    -k-sky-top: #7ec8f2;
+    -k-sky-bottom: #c4e8fb;
 
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
-    -fx-text-fill: -c-text;
-    -fx-background-color: -c-bg;
+    -fx-font-weight: bold;
+    -fx-text-fill: -k-ink;
+    -fx-background-color: linear-gradient(to bottom, -k-sky-top, -k-sky-bottom);
 }
 
 /* Nền toàn màn. Muốn dùng ảnh nền: đặt file vào assets/images/background/app_bg.jpg
    rồi bỏ comment 2 dòng -fx-background-image / -fx-background-size bên dưới. */
 .app-root {
-    -fx-background-color: -c-bg;
+    -fx-background-color: linear-gradient(to bottom, -k-sky-top, -k-sky-bottom);
     /* -fx-background-image: url("../../assets/images/background/app_bg.jpg"); */
     /* -fx-background-size: cover; */
 }
 
 /* ---------- Chữ ---------- */
-.label { -fx-text-fill: -c-text; }
-.app-title   { -fx-font-size: 26px; -fx-font-weight: bold; }
-.page-title  { -fx-font-size: 22px; -fx-font-weight: bold; }
+.label { -fx-text-fill: -k-ink; }
+.muted { -fx-text-fill: -k-muted; -fx-font-weight: normal; }
+.small { -fx-font-size: 12px; }
+.field-label { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -k-ink; }
 .section-title { -fx-font-size: 16px; -fx-font-weight: bold; }
-.brand       { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -c-accent; }
-.muted       { -fx-text-fill: -c-muted; }
-.small       { -fx-font-size: 12px; }
-.field-label { -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #374151; }
+.app-title { -fx-font-size: 26px; -fx-font-weight: bold; }
 
-/* ---------- Khối ---------- */
+/* Tiêu đề trang: chữ trắng có bóng cứng, đứng trên nền trời */
+.page-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(one-pass-box, -k-ink, 0, 0, 0, 3);
+}
+.app-root .muted, .header-hint { -fx-text-fill: #24506e; }
+.panel .muted, .auth-card .muted, .modal-card .muted, .player-card .muted { -fx-text-fill: -k-muted; }
+
+/* Nhãn tên game (thẻ cam) */
+.brand {
+    -fx-background-color: -k-ink, -k-orange;
+    -fx-background-insets: 0, 3 3 6 3;
+    -fx-background-radius: 12, 9;
+    -fx-padding: 6 16 9 16;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.0), 0, 0, 0, 0);
+}
+
+/* ---------- Khối (panel kem viền đen, bóng dưới) ---------- */
 .panel {
-    -fx-background-color: -c-surface;
-    -fx-background-radius: 12;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 12;
-    -fx-border-width: 1;
-    -fx-padding: 20;
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 9 4;
+    -fx-background-radius: 16, 12;
+    -fx-padding: 18 20 23 20;
 }
 .header-bar {
-    -fx-background-color: -c-surface;
-    -fx-border-color: transparent transparent -c-border transparent;
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 12 24 12 24;
+    -fx-background-color: transparent;
+    -fx-padding: 14 24 6 24;
 }
 
 /* ---------- Ô nhập ---------- */
 .text-field, .password-field {
-    -fx-background-color: -c-surface;
-    -fx-background-radius: 8;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 8;
-    -fx-padding: 9 12 9 12;
-    -fx-prompt-text-fill: #9ca3af;
+    -fx-background-color: -k-ink, white;
+    -fx-background-insets: 0, 3;
+    -fx-background-radius: 10, 7;
+    -fx-padding: 10 12 10 12;
+    -fx-font-weight: bold;
+    -fx-text-fill: -k-ink;
+    -fx-prompt-text-fill: #a89f86;
 }
 .text-field:focused, .password-field:focused {
-    -fx-border-color: -c-accent;
+    -fx-background-color: -k-blue, white;
 }
 
-/* ---------- Nút ---------- */
+/* ---------- Nút nổi 3D ----------
+   Lớp 1 = viền + bóng đen (dày hơn ở đáy), lớp 2 = màu nút (nửa dưới đậm hơn). */
 .button {
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 9 16 9 16;
+    -fx-background-color: -k-ink, linear-gradient(to bottom, -k-blue 0%, -k-blue 80%, -k-blue-dark 81%, -k-blue-dark 100%);
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 12, 9;
+    -fx-padding: 8 18 12 18;
+    -fx-text-fill: white;
     -fx-font-weight: bold;
+    -fx-font-size: 14px;
     -fx-cursor: hand;
-    -fx-background-color: -c-surface;
-    -fx-border-color: -c-border;
-    -fx-text-fill: -c-text;
+    -fx-effect: null;
 }
-.button:hover { -fx-background-color: #f9fafb; }
-.button:pressed { -fx-background-color: #f3f4f6; }
+.button:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-blue, 12%) 0%, derive(-k-blue, 12%) 80%, -k-blue 81%, -k-blue 100%); }
+.button:pressed {
+    -fx-background-insets: 4 0 0 0, 7 3 3 3;
+    -fx-padding: 12 18 8 18;
+}
+.button:focused { -fx-background-insets: 0, 3 3 7 3; }
+.button:pressed:focused { -fx-background-insets: 4 0 0 0, 7 3 3 3; }
+.button:disabled { -fx-opacity: 0.55; }
 
-.btn-primary {
-    -fx-background-color: -c-accent;
-    -fx-border-color: -c-accent;
-    -fx-text-fill: white;
-}
-.btn-primary:hover { -fx-background-color: -c-accent-dark; -fx-border-color: -c-accent-dark; }
+.btn-primary { -fx-background-color: -k-ink, linear-gradient(to bottom, -k-blue 0%, -k-blue 80%, -k-blue-dark 81%, -k-blue-dark 100%); }
+.btn-primary:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-blue, 12%) 0%, derive(-k-blue, 12%) 80%, -k-blue 81%, -k-blue 100%); }
 
-.btn-danger {
-    -fx-background-color: -c-danger;
-    -fx-border-color: -c-danger;
-    -fx-text-fill: white;
-}
-.btn-danger:hover { -fx-background-color: #b91c1c; -fx-border-color: #b91c1c; }
+.btn-green { -fx-background-color: -k-ink, linear-gradient(to bottom, -k-green 0%, -k-green 80%, -k-green-dark 81%, -k-green-dark 100%); }
+.btn-green:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-green, 12%) 0%, derive(-k-green, 12%) 80%, -k-green 81%, -k-green 100%); }
 
-.btn-ghost {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: -c-muted;
+.btn-danger { -fx-background-color: -k-ink, linear-gradient(to bottom, -k-red 0%, -k-red 80%, -k-red-dark 81%, -k-red-dark 100%); }
+.btn-danger:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-red, 12%) 0%, derive(-k-red, 12%) 80%, -k-red 81%, -k-red 100%); }
+
+.btn-yellow {
+    -fx-background-color: -k-ink, linear-gradient(to bottom, -k-yellow 0%, -k-yellow 80%, -k-yellow-dark 81%, -k-yellow-dark 100%);
+    -fx-text-fill: -k-ink;
 }
-.btn-ghost:hover { -fx-background-color: #eef0f3; -fx-text-fill: -c-text; }
+.btn-yellow:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-yellow, 15%) 0%, derive(-k-yellow, 15%) 80%, -k-yellow 81%, -k-yellow 100%); }
+
+/* Nút phụ màu trắng (Hủy, ...) */
+.btn-neutral, .btn-ghost {
+    -fx-background-color: -k-ink, linear-gradient(to bottom, white 0%, white 80%, #e9e2cf 81%, #e9e2cf 100%);
+    -fx-text-fill: -k-ink;
+}
+.btn-neutral:hover, .btn-ghost:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, #fffdf6 0%, #fffdf6 80%, white 81%, white 100%); }
 
 .btn-menu {
     -fx-alignment: center-left;
-    -fx-padding: 12 16 12 16;
+    -fx-font-size: 15px;
 }
 
-.hyperlink { -fx-text-fill: -c-accent; -fx-border-color: transparent; -fx-padding: 0; }
-.hyperlink:visited { -fx-text-fill: -c-accent; }
+.hyperlink {
+    -fx-text-fill: -k-blue-dark;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: true;
+}
+.hyperlink:visited { -fx-text-fill: -k-blue-dark; }
 
 /* ---------- Thông báo ---------- */
 .msg-error {
-    -fx-text-fill: -c-danger;
-    -fx-background-color: #fef2f2;
-    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-background-color: -k-ink, -k-red;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 8, 6;
     -fx-padding: 8 10 8 10;
 }
 .msg-success {
-    -fx-text-fill: -c-success;
-    -fx-background-color: #f0fdf4;
-    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-background-color: -k-ink, -k-green;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 8, 6;
     -fx-padding: 8 10 8 10;
 }
 
 /* ---------- Bảng ---------- */
 .table-view {
-    -fx-background-color: -c-surface;
-    -fx-background-radius: 12;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 12;
-    -fx-padding: 4;
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 9 4;
+    -fx-background-radius: 16, 12;
+    -fx-padding: 4 4 9 4;
     -fx-table-cell-border-color: transparent;
 }
+.table-view:focused { -fx-background-color: -k-ink, -k-cream; }
 .table-view .column-header-background {
-    -fx-background-color: -c-surface;
+    -fx-background-color: -k-orange;
     -fx-background-radius: 12 12 0 0;
+    -fx-border-color: transparent transparent -k-ink transparent;
+    -fx-border-width: 0 0 3 0;
 }
 .table-view .column-header, .table-view .filler {
     -fx-background-color: transparent;
-    -fx-border-color: transparent transparent -c-border transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-border-color: transparent;
     -fx-size: 40;
 }
 .table-view .column-header .label {
-    -fx-text-fill: -c-muted;
+    -fx-text-fill: white;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-alignment: center-left;
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.25), 0, 0, 0, 1);
 }
+.table-view .corner { -fx-background-color: transparent; }
 .table-row-cell {
-    -fx-background-color: -c-surface;
-    -fx-border-color: transparent transparent #f0f1f3 transparent;
-    -fx-cell-size: 42;
+    -fx-background-color: -k-cream;
+    -fx-border-color: transparent transparent #eadfbf transparent;
+    -fx-cell-size: 44;
 }
-.table-row-cell:hover { -fx-background-color: #f9fafb; }
-.table-row-cell:selected { -fx-background-color: -c-accent-soft; }
-.table-row-cell:selected .table-cell { -fx-text-fill: -c-text; }
-.table-cell { -fx-padding: 0 12 0 12; -fx-alignment: center-left; }
-.table-view .placeholder .label { -fx-text-fill: -c-muted; }
+.table-row-cell:odd { -fx-background-color: #fdf2d6; }
+.table-row-cell:hover { -fx-background-color: #fff1b8; }
+.table-row-cell:selected { -fx-background-color: #ffe27a; }
+.table-row-cell:selected .table-cell { -fx-text-fill: -k-ink; }
+.table-row-cell:empty { -fx-background-color: transparent; -fx-border-color: transparent; }
+.table-cell { -fx-padding: 0 12 0 12; -fx-alignment: center-left; -fx-text-fill: -k-ink; -fx-font-weight: bold; }
+.table-view .placeholder .label { -fx-text-fill: -k-muted; }
 .col-center { -fx-alignment: center; }
 
-/* ---------- Thanh tiến trình (đồng hồ lượt) ---------- */
-.progress-bar { -fx-accent: -c-accent; }
+/* Thanh cuộn gọn */
+.scroll-bar { -fx-background-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: #d9cba3; -fx-background-radius: 6; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: " "; -fx-padding: 0; }
+
+/* ---------- Thanh thời gian ---------- */
+.progress-bar { -fx-accent: -k-yellow; }
 .progress-bar > .track {
-    -fx-background-color: #e5e7eb;
-    -fx-background-radius: 6;
-    -fx-background-insets: 0;
+    -fx-background-color: -k-ink, white;
+    -fx-background-insets: 0, 3;
+    -fx-background-radius: 10, 7;
 }
 .progress-bar > .bar {
-    -fx-background-radius: 6;
-    -fx-background-insets: 0;
+    -fx-background-color: -fx-accent;
+    -fx-background-insets: 3;
+    -fx-background-radius: 7;
 }
 
-/* ---------- Hộp thoại ---------- */
-.dialog-pane {
-    -fx-background-color: -c-surface;
-}
+/* ---------- Hộp thoại mặc định ---------- */
+.dialog-pane { -fx-background-color: -k-cream; }
 .dialog-pane > .header-panel {
-    -fx-background-color: -c-surface;
+    -fx-background-color: -k-cream;
     -fx-padding: 16 20 4 20;
 }
 .dialog-pane > .header-panel .label { -fx-font-size: 16px; -fx-font-weight: bold; }
-.dialog-pane > .content.label { -fx-padding: 8 20 8 20; -fx-text-fill: -c-muted; }
+.dialog-pane > .content.label { -fx-padding: 8 20 8 20; -fx-text-fill: -k-muted; }
 
 /* =====================================================================
    Màn chơi
    ===================================================================== */
 .game-bg {
-    -fx-background-color: -c-bg;
+    -fx-background-color: linear-gradient(to bottom, -k-sky-top, -k-sky-bottom);
 }
 .game-topbar {
-    -fx-background-color: rgba(255, 255, 255, 0.92);
-    -fx-background-radius: 12;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 12;
-    -fx-padding: 10 16 10 16;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
 }
+.match-clock {
+    -fx-background-color: -k-ink, -k-orange;
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 14, 11;
+    -fx-padding: 4 20 9 20;
+}
+.match-clock .player-role { -fx-text-fill: #fff3d6; }
+.match-time {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-text-fill: white;
+}
+.time-warning { -fx-text-fill: #ffe0dc; }
+.match-clock-warning {
+    -fx-background-color: -k-ink, -k-red;
+}
+
 .player-card {
-    -fx-background-color: rgba(255, 255, 255, 0.95);
-    -fx-background-radius: 12;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 12;
-    -fx-padding: 18;
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 9 4;
+    -fx-background-radius: 16, 12;
+    -fx-padding: 16 16 21 16;
     -fx-min-width: 170;
     -fx-pref-width: 170;
 }
-.player-role  { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -c-muted; }
-.player-name  { -fx-font-size: 17px; -fx-font-weight: bold; }
-.score-value  { -fx-font-size: 44px; -fx-font-weight: bold; }
+.player-role { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -k-muted; }
+.player-name  { -fx-font-size: 18px; -fx-font-weight: bold; }
+.score-value  { -fx-font-size: 48px; -fx-font-weight: bold; }
 .board-panel {
-    -fx-background-color: rgba(255, 255, 255, 0.92);
-    -fx-background-radius: 14;
-    -fx-border-color: -c-border;
-    -fx-border-radius: 14;
-    -fx-padding: 18;
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 9 4;
+    -fx-background-radius: 18, 14;
+    -fx-padding: 16 18 23 18;
 }
 .turn-indicator { -fx-font-size: 18px; -fx-font-weight: bold; }
-.time-label { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -c-muted; -fx-min-width: 60; }
-.match-time { -fx-font-size: 22px; -fx-font-weight: bold; -fx-font-family: "Consolas", "Menlo", monospace; }
-.time-warning { -fx-text-fill: -c-danger; }
+.time-label { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -k-ink; -fx-min-width: 60; }
 
-/* Lá bài. Mặt sau là ảnh (assets/images/background/...); thiếu ảnh sẽ hiện dấu "?" trên nền này. */
+/* Lá bài: ô xanh nổi. Mặt sau có ảnh (assets/images/background/...) thì ảnh nằm giữa ô;
+   thiếu ảnh thì hiện dấu "?" trắng. */
 .memory-card {
-    -fx-background-color: #eef1f5;
-    -fx-background-radius: 10;
-    -fx-border-color: #d7dce3;
-    -fx-border-radius: 10;
-    -fx-padding: 4;
-    -fx-font-size: 28px;
-    -fx-text-fill: #9ca3af;
+    -fx-background-color: -k-ink, linear-gradient(to bottom, -k-blue 0%, -k-blue 80%, -k-blue-dark 81%, -k-blue-dark 100%);
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 12, 9;
+    -fx-padding: 4 4 8 4;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
     -fx-content-display: center;
+    -fx-effect: null;
 }
-.memory-card:hover { -fx-border-color: -c-accent; }
+.memory-card:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-blue, 12%) 0%, derive(-k-blue, 12%) 80%, -k-blue 81%, -k-blue 100%); }
+.memory-card:pressed { -fx-background-insets: 4 0 0 0, 7 3 3 3; -fx-padding: 8 4 4 4; }
 .memory-card:disabled { -fx-opacity: 1; }
 
-.countdown-dim { -fx-background-color: rgba(17, 24, 39, 0.55); }
+.countdown-dim { -fx-background-color: rgba(30, 60, 90, 0.55); }
