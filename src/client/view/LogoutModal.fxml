@@ -14,7 +14,7 @@
         <Label styleClass="muted" wrapText="true" text="Bạn sẽ quay về màn hình đăng nhập."/>
         <HBox alignment="CENTER_RIGHT" spacing="10.0">
             <children>
-                <Button text="Hủy" cancelButton="true" onAction="#handleCancelLogout"/>
+                <Button styleClass="btn-neutral" text="Hủy" cancelButton="true" onAction="#handleCancelLogout"/>
                 <Button styleClass="btn-danger" text="Đăng xuất" defaultButton="true" onAction="#handleLogout"/>
             </children>
         </HBox>

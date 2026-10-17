@@ -1,56 +1,62 @@
 /* Sảnh chờ + toàn bộ hộp thoại (mời đấu, kết quả, thông báo).
    File này được nạp riêng cho từng hộp thoại nên tự chứa đủ style, không phụ thuộc style.css. */
 .my-alert {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #3a3a3a, #fff8e6;
+    -fx-background-insets: 0, 4;
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
+    -fx-font-weight: bold;
     -fx-padding: 4;
 }
 .my-alert > .header-panel {
-    -fx-background-color: #ffffff;
-    -fx-padding: 18 22 6 22;
+    -fx-background-color: #f5a623;
+    -fx-border-color: transparent transparent #3a3a3a transparent;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 14 22 14 22;
 }
 .my-alert > .header-panel .label {
-    -fx-font-size: 17px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #111827;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(one-pass-box, #3a3a3a, 0, 0, 0, 2);
 }
 .my-alert > .header-panel > .graphic-container { -fx-padding: 0; }
-.my-alert > .content { -fx-padding: 8 22 12 22; }
-.my-alert > .content.label, .my-alert .label { -fx-text-fill: #374151; }
+.my-alert > .content { -fx-padding: 16 22 10 22; }
+.my-alert > .content.label, .my-alert .label { -fx-text-fill: #3a3a3a; }
 .my-alert .choice-box {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e2e5e9;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 4 6 4 6;
+    -fx-background-color: #3a3a3a, white;
+    -fx-background-insets: 0, 3;
+    -fx-background-radius: 10, 7;
+    -fx-padding: 6 8 6 8;
 }
-.my-alert > .button-bar > .container { -fx-padding: 6 22 18 22; }
+.my-alert > .button-bar > .container { -fx-padding: 8 22 20 22; }
 .my-alert .button {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e2e5e9;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-text-fill: #111827;
+    -fx-background-color: #3a3a3a, linear-gradient(to bottom, #ffffff 0%, #ffffff 80%, #e9e2cf 81%, #e9e2cf 100%);
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 12, 9;
+    -fx-padding: 8 18 12 18;
+    -fx-text-fill: #3a3a3a;
     -fx-font-weight: bold;
-    -fx-padding: 8 16 8 16;
     -fx-cursor: hand;
 }
-.my-alert .button:hover { -fx-background-color: #f9fafb; }
+.my-alert .button:pressed { -fx-background-insets: 4 0 0 0, 7 3 3 3; -fx-padding: 12 18 8 18; }
 .my-alert .button:default {
-    -fx-background-color: #2563eb;
-    -fx-border-color: #2563eb;
+    -fx-background-color: #3a3a3a, linear-gradient(to bottom, #4cbb3a 0%, #4cbb3a 80%, #369227 81%, #369227 100%);
     -fx-text-fill: white;
 }
-.my-alert .button:default:hover { -fx-background-color: #1d4ed8; }
+.my-alert .button:cancel {
+    -fx-background-color: #3a3a3a, linear-gradient(to bottom, #e84b3b 0%, #e84b3b 80%, #c0362a 81%, #c0362a 100%);
+    -fx-text-fill: white;
+}
 
 /* Sảnh chờ */
-.side-panel { -fx-spacing: 10; }
-.tip-text { -fx-text-fill: -c-muted; -fx-font-size: 12px; -fx-wrap-text: true; }
+.side-panel { -fx-spacing: 14; }
+.tip-text { -fx-text-fill: #5c5038; -fx-font-size: 12px; -fx-font-weight: normal; -fx-wrap-text: true; }
 .welcome-chip {
-    -fx-background-color: -c-accent-soft;
-    -fx-background-radius: 999;
-    -fx-padding: 6 12 6 12;
-    -fx-text-fill: -c-accent-dark;
+    -fx-background-color: #3a3a3a, white;
+    -fx-background-insets: 0, 3;
+    -fx-background-radius: 999, 999;
+    -fx-padding: 7 14 7 14;
+    -fx-text-fill: #3a3a3a;
     -fx-font-weight: bold;
 }

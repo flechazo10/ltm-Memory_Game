@@ -143,8 +143,8 @@ public class GameRoomController implements Initializable {
     private void applyPlayerColors() {
         if (userPlayer == null || serverPlayer1Id == 0) return;
         boolean iAmPlayer1 = userPlayer.getId() == serverPlayer1Id;
-        String red = "-fx-text-fill: #dc2626;";
-        String blue = "-fx-text-fill: #2563eb;";
+        String red = "-fx-text-fill: #e84b3b;";
+        String blue = "-fx-text-fill: #3b8fe8;";
         txtPlayer1.setStyle(iAmPlayer1 ? red : blue);
         txtPlayer2.setStyle(iAmPlayer1 ? blue : red);
     }
@@ -247,7 +247,7 @@ public class GameRoomController implements Initializable {
 
     private void showScoreIncreaseAnimation(Label scoreLabel, int increment) {
         Label plusLabel = new Label("+" + increment);
-        plusLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 26px; -fx-font-weight: bold;");
+        plusLabel.setStyle("-fx-text-fill: #2c8a1f; -fx-font-size: 28px; -fx-font-weight: bold;");
 
         StackPane parent = (StackPane) scoreLabel.getParent();
         parent.getChildren().add(plusLabel);
@@ -366,7 +366,7 @@ public class GameRoomController implements Initializable {
         isMyTurn = (userPlayer != null && userPlayer.getId() == currentPlayerId);
 
         lblTurnIndicator.setText(isMyTurn ? "LƯỢT CỦA BẠN" : "LƯỢT ĐỐI THỦ");
-        lblTurnIndicator.setTextFill(isMyTurn ? Color.web("#16a34a") : Color.web("#dc2626"));
+        lblTurnIndicator.setTextFill(isMyTurn ? Color.web("#2c8a1f") : Color.web("#e07b00"));
 
         tblCard.setDisable(false);
 
@@ -381,7 +381,7 @@ public class GameRoomController implements Initializable {
         final int[] remainingTime = {TURN_TIME_SECONDS};
         timeLabel.setText(remainingTime[0] + "s");
         timeBar.setProgress(1.0);
-        timeBar.setStyle("-fx-accent: #2563eb;");
+        timeBar.setStyle("-fx-accent: #f5c623;");
 
         turnTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             remainingTime[0]--;
@@ -389,9 +389,9 @@ public class GameRoomController implements Initializable {
             timeBar.setProgress((double) remainingTime[0] / TURN_TIME_SECONDS);
 
             if (remainingTime[0] <= 3) {
-                timeBar.setStyle("-fx-accent: #dc2626;");
+                timeBar.setStyle("-fx-accent: #e84b3b;");
             } else if (remainingTime[0] <= 6) {
-                timeBar.setStyle("-fx-accent: #d97706;");
+                timeBar.setStyle("-fx-accent: #f5a623;");
             }
 
             if (remainingTime[0] <= 0) {
@@ -577,7 +577,7 @@ public class GameRoomController implements Initializable {
 
     private void showCountdownStart() {
         countdownLabel.setText("START!");
-        countdownLabel.setTextFill(Color.LAVENDER);
+        countdownLabel.setTextFill(Color.web("#ffd23f"));
 
         DropShadow glow = new DropShadow(70, Color.LIME);
         glow.setSpread(0.3);
@@ -762,7 +762,7 @@ public class GameRoomController implements Initializable {
         if (response.isPresent() && response.get() == continueBtn) {
             app.sendMessage(new Message(MessageType.PLAY_AGAIN_REQUEST, userPlayer));
             lblTurnIndicator.setText("ĐANG CHỜ ĐỐI THỦ...");
-            lblTurnIndicator.setTextFill(Color.web("#6b7280"));
+            lblTurnIndicator.setTextFill(Color.web("#7a6a40"));
         } else {
             leaveAfterGame();
         }

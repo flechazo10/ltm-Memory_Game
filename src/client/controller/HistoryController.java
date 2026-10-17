@@ -32,6 +32,13 @@ public class HistoryController {
         colNameH.setCellValueFactory(new PropertyValueFactory<>("username"));
         colTotalScoreH.setCellValueFactory(new PropertyValueFactory<>("totalScore"));
         colStatusH.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colTotalScoreH.setCellFactory(column -> new TableCell<Player, Double>() {
+            @Override
+            protected void updateItem(Double score, boolean empty) {
+                super.updateItem(score, empty);
+                setText(empty || score == null ? null : formatScore(score));
+            }
+        });
 
         colStatusH.setCellFactory(column -> new TableCell<Player, String>() {
             @Override
@@ -42,14 +49,14 @@ public class HistoryController {
                 } else {
                     status = status.toUpperCase();
                     if (status.equals(String.valueOf(Status.ONLINE))) {
-                        setText("Online");
-                        setStyle("-fx-text-fill: #00FF99; -fx-font-weight: bold;");
+                        setText("Rảnh");
+                        setStyle("-fx-text-fill: #2c8a1f; -fx-font-weight: bold;");
                     } else if (status.equals(String.valueOf(Status.OFFLINE))) {
                         setText("Offline");
-                        setStyle("-fx-text-fill: #AAAAAA; -fx-font-weight: normal;");
+                        setStyle("-fx-text-fill: #9a9078; -fx-font-weight: bold;");
                     } else {
-                        setText("In Game");
-                        setStyle("-fx-text-fill: #efd967; -fx-font-weight: bold;");
+                        setText("Đang chơi");
+                        setStyle("-fx-text-fill: #d98a00; -fx-font-weight: bold;");
                     }
                     setAlignment(Pos.CENTER);
                 }
@@ -87,6 +94,11 @@ public class HistoryController {
         if (client != null) {
             client.showMainUI();
         }
+    }
+
+    /** 7.0 -> "7", 7.5 -> "7.5" */
+    private static String formatScore(double score) {
+        return score == Math.floor(score) ? String.valueOf((long) score) : String.valueOf(score);
     }
 
     public void setWelcomeText(String text) {

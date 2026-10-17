@@ -8,8 +8,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 
 import java.time.Duration;
@@ -80,33 +80,51 @@ public class HistoryDetailController {
             LocalDateTime end = match.getEndTime();
             if (end != null) {
                 Duration duration = Duration.between(start, end);
-                return new SimpleStringProperty(String.format("%02d m %02d s", duration.toMinutes(), duration.getSeconds() % 60));
+                return new SimpleStringProperty(String.format("%02d:%02d", duration.toMinutes(), duration.getSeconds() % 60));
             }
-            return new SimpleStringProperty("In progress");
+            return new SimpleStringProperty("Đang đấu");
         });
 
-        colResult.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("result"));
+        // WIN / LOSE / DRAW -> Thắng / Thua / Hòa, có màu (style trong ranking.css)
+        colResult.setCellValueFactory(cellData -> new SimpleStringProperty(
+                cellData.getValue().getResult() != null ? cellData.getValue().getResult().toString() : ""));
+        colResult.setCellFactory(column -> new TableCell<DetailMatch, String>() {
+            @Override
+            protected void updateItem(String result, boolean empty) {
+                super.updateItem(result, empty);
+                getStyleClass().removeAll("result-win", "result-lose", "result-draw");
+                if (empty || result == null || result.isEmpty()) {
+                    setText(null);
+                    return;
+                }
+                switch (result.toUpperCase()) {
+                    case "WIN" -> { setText("Thắng"); getStyleClass().add("result-win"); }
+                    case "LOSE" -> { setText("Thua"); getStyleClass().add("result-lose"); }
+                    case "DRAW" -> { setText("Hòa"); getStyleClass().add("result-draw"); }
+                    default -> setText(result);
+                }
+            }
+        });
 
-        // Lấy đúng số điểm (1.0, 0.5, 0.0) từ đối tượng DetailMatch
+        // Số cặp đã ăn trong trận (GameRoom lưu vào points)
         colPoints.setCellValueFactory(cellData ->
                 new SimpleDoubleProperty(cellData.getValue().getPoints()).asObject()
         );
+        colPoints.setCellFactory(column -> new TableCell<DetailMatch, Double>() {
+            @Override
+            protected void updateItem(Double points, boolean empty) {
+                super.updateItem(points, empty);
+                if (empty || points == null) {
+                    setText(null);
+                } else {
+                    setText(points == Math.floor(points) ? String.valueOf(points.longValue()) : String.valueOf(points));
+                }
+            }
+        });
 
         colIsQuit.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().isQuit() ? "Thoát" : "")
         );
-
-        tblDetailHistory.setRowFactory(tv -> {
-            TableRow<DetailMatch> row = new TableRow<>();
-            row.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
-                if (isNowSelected) {
-                    row.setStyle("-fx-background-color: linear-gradient(to right, rgba(75,105,162,0.5), rgba(75,105,162,0.5));");
-                } else {
-                    row.setStyle("");
-                }
-            });
-            return row;
-        });
     }
 
     public void setHistoryDetail(List<DetailMatch> list, String playerName) {

@@ -100,6 +100,13 @@ public class MainController {
         colName.setCellValueFactory(new PropertyValueFactory<>("username"));
         colScore.setCellValueFactory(new PropertyValueFactory<>("totalScore"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colScore.setCellFactory(column -> new TableCell<Player, Double>() {
+            @Override
+            protected void updateItem(Double score, boolean empty) {
+                super.updateItem(score, empty);
+                setText(empty || score == null ? null : formatScore(score));
+            }
+        });
 
         colStatus.setCellFactory(column -> new TableCell<Player, String>() {
             @Override
@@ -111,13 +118,13 @@ public class MainController {
                     status = status.toUpperCase();
                     if (status.equals(String.valueOf(Status.ONLINE))) {
                         setText("Rảnh");
-                        setStyle("-fx-text-fill: #16a34a; -fx-font-weight: bold;");
+                        setStyle("-fx-text-fill: #2c8a1f; -fx-font-weight: bold;");
                     } else if (status.equals(String.valueOf(Status.OFFLINE))) {
                         setText("Offline");
-                        setStyle("-fx-text-fill: #9ca3af; -fx-font-weight: normal;");
+                        setStyle("-fx-text-fill: #9a9078; -fx-font-weight: bold;");
                     } else {
                         setText("Đang chơi");
-                        setStyle("-fx-text-fill: #d97706; -fx-font-weight: bold;");
+                        setStyle("-fx-text-fill: #d98a00; -fx-font-weight: bold;");
                     }
                     setAlignment(Pos.CENTER);
                 }

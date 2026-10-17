@@ -18,7 +18,7 @@
         <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="12.0">
             <children>
                 <!-- onLogout trong controller thực chất là "quay lại danh sách lịch sử" -->
-                <Button styleClass="btn-ghost" text="← Quay lại" onAction="#onLogout"/>
+                <Button text="← Quay lại" onAction="#onLogout"/>
                 <Label styleClass="brand" text="Lật Bài Online"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </children>

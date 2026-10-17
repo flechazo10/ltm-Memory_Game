@@ -17,7 +17,7 @@
     <top>
         <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="12.0">
             <children>
-                <Button styleClass="btn-ghost" text="← Về sảnh" onAction="#onBack"/>
+                <Button text="← Về sảnh" onAction="#onBack"/>
                 <Label styleClass="brand" text="Lật Bài Online"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </children>

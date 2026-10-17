@@ -32,16 +32,16 @@
                         <!-- Thanh trên: rời trận | đồng hồ trận 15 phút | nhạc -->
                         <HBox styleClass="game-topbar" alignment="CENTER_LEFT" spacing="12.0">
                             <children>
-                                <Button fx:id="btnHome" text="← Rời trận" onAction="#onHomeButton"/>
+                                <Button fx:id="btnHome" styleClass="btn-danger" text="← Rời trận" onAction="#onHomeButton"/>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <VBox alignment="CENTER" spacing="0.0">
+                                <VBox styleClass="match-clock" alignment="CENTER" spacing="0.0">
                                     <children>
                                         <Label styleClass="player-role" text="THỜI GIAN TRẬN"/>
                                         <Label fx:id="lblMatchTime" styleClass="match-time" text="15:00"/>
                                     </children>
                                 </VBox>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <Button fx:id="btnMusic" styleClass="btn-ghost" text="Nhạc: Bật" onAction="#onMusicButton"/>
+                                <Button fx:id="btnMusic" styleClass="btn-yellow" text="Nhạc: Bật" onAction="#onMusicButton"/>
                             </children>
                         </HBox>
 
