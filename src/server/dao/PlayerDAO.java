@@ -112,6 +112,15 @@ public class PlayerDAO extends DAO {
         }
     }
 
+    /** Reset toàn bộ người chơi về OFFLINE — gọi khi server khởi động để dọn status bẩn. */
+    public void resetAllPlayersOffline() throws SQLException {
+        String query = "UPDATE tblplayer SET status = 'offline'";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            int rows = stmt.executeUpdate();
+            System.out.println("[Server] Đã reset " + rows + " người chơi về OFFLINE.");
+        }
+    }
+
     public List<Player> getAllPlayers() throws SQLException {
         List<Player> players = new ArrayList<>();
         String query = "SELECT * FROM tblplayer";
