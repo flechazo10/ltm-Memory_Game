@@ -33,25 +33,14 @@ public class GameRoomController implements Initializable {
     private static final int CARD_SIZE = 90;
     private static final int TURN_TIME_SECONDS = 15;
     private static final int DEFAULT_MATCH_SECONDS = 15 * 60;   // trùng GameRoom.MATCH_TIMEOUT_MINUTES
-    private static final String BACK_CARD_IMAGE_PATH = "/assets/images/background/back_card.jpg";
-    private String currentBackCardImagePath = BACK_CARD_IMAGE_PATH;
+    // Ảnh nền mặc định — dùng chung cho tất cả chủ đề: messi, giang_ho_mang, truong_con_nam_dinh
+    private static final String DEFAULT_BG        = "/assets/images/background/background_default.jpg";
+    private static final String DEFAULT_BACK_CARD = "/assets/images/background/card_back.jpg"; // mặt sau lá bài
+    private String currentBackCardImagePath = null;
 
-    private static final Map<String, String> THEME_BACK_CARDS = Map.of(
-            "kimesu", "/assets/images/background/back_card.jpg",
-            "onepunchman", "/assets/images/background/opm.jpg",
-            "footballer", "/assets/images/background/ball.jpg",
-            "badminton", "/assets/images/background/qua.jpg",
-            "sakamoto", "/assets/images/background/back_card.jpg",
-            "Default", BACK_CARD_IMAGE_PATH
-    );
-    private static final Map<String, String> THEME_BACKGROUNDS = Map.of(
-            "kimesu", "/assets/images/background/Kimetsu.jpg",
-            "onepunchman", "/assets/images/background/back_ground_opm.jpg",
-            "footballer", "/assets/images/background/sta.jpg",
-            "badminton", "/assets/images/background/caulong.jpg",
-            "sakamoto", "/assets/images/background/sakamoto.jpg",
-            "Default", "/assets/images/background/Kimetsu.jpg"
-    );
+    // Map chủ đề để trống → tất cả fallback về DEFAULT_BG / DEFAULT_BACK_CARD
+    private static final Map<String, String> THEME_BACK_CARDS  = new HashMap<>();
+    private static final Map<String, String> THEME_BACKGROUNDS = new HashMap<>();
 
     private ClientService app;
     private Player userPlayer;
@@ -151,7 +140,9 @@ public class GameRoomController implements Initializable {
 
     private void changeBackgroundByTheme(String themeName) {
         if (background == null) return;
-        String imagePath = THEME_BACKGROUNDS.getOrDefault(themeName, THEME_BACKGROUNDS.get("Default"));
+        // Tất cả chủ đề dùng chung background_default.jpg
+        String imagePath = THEME_BACKGROUNDS.getOrDefault(themeName,
+                           THEME_BACKGROUNDS.getOrDefault("Default", DEFAULT_BG));
         URL resourceUrl = getClass().getResource(imagePath);
         if (resourceUrl == null) return;
 
@@ -168,7 +159,9 @@ public class GameRoomController implements Initializable {
     }
 
     private void changeBackCardByTheme(String themeName) {
-        this.currentBackCardImagePath = THEME_BACK_CARDS.getOrDefault(themeName, BACK_CARD_IMAGE_PATH);
+        // Tất cả chủ đề dùng chung background_default.jpg làm mặt sau
+        this.currentBackCardImagePath = THEME_BACK_CARDS.getOrDefault(themeName,
+                THEME_BACK_CARDS.getOrDefault("Default", DEFAULT_BACK_CARD));
     }
 
     public void handleCountdown(int count) {
@@ -460,6 +453,8 @@ public class GameRoomController implements Initializable {
         Button card = new Button();
         card.setPrefSize(CARD_SIZE, CARD_SIZE);
         card.setMinSize(CARD_SIZE, CARD_SIZE);
+        card.setMaxSize(CARD_SIZE, CARD_SIZE);
+        card.setPadding(javafx.geometry.Insets.EMPTY);  // bỏ padding để ảnh fill sát viền
         card.getStyleClass().add("memory-card");
         card.setUserData(index);
 
@@ -691,9 +686,10 @@ public class GameRoomController implements Initializable {
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
             Image image = new Image(new ByteArrayInputStream(imageBytes));
             ImageView imageView = new ImageView(image);
-            imageView.setFitWidth(CARD_SIZE - 10);
-            imageView.setFitHeight(CARD_SIZE - 10);
-            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(CARD_SIZE);
+            imageView.setFitHeight(CARD_SIZE);
+            imageView.setPreserveRatio(false);  // stretch vừa khít khung
+            imageView.setSmooth(true);
             return imageView;
         } catch (Exception e) {
             return createImageViewFromPath(null);
@@ -703,6 +699,7 @@ public class GameRoomController implements Initializable {
     private ImageView createImageViewFromPath(String path) {
         ImageView imageView = new ImageView();
         String realPath = path != null ? path : currentBackCardImagePath;
+        if (realPath == null) return imageView;
         URL url = getClass().getResource(realPath);
         if (url == null) {
             return imageView;   // chưa có ảnh -> trả về ImageView rỗng, không làm crash
@@ -710,9 +707,10 @@ public class GameRoomController implements Initializable {
         try {
             Image image = new Image(url.toExternalForm());
             imageView.setImage(image);
-            imageView.setFitWidth(CARD_SIZE - 10);
-            imageView.setFitHeight(CARD_SIZE - 10);
-            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(CARD_SIZE);
+            imageView.setFitHeight(CARD_SIZE);
+            imageView.setPreserveRatio(false);  // stretch vừa khít khung
+            imageView.setSmooth(true);
         } catch (Exception e) {
             System.err.println("Lỗi tải ảnh: " + path);
         }

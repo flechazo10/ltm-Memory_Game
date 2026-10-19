@@ -47,7 +47,7 @@ public class ClientService {
     private Player currentPlayer;
     private MediaPlayer mediaPlayer;
     private boolean musicOn = true;
-    private static final String MUSIC_PATH = "/assets/sound/ifinitycastle.mp3";
+    private static final String MUSIC_PATH = "/assets/sound/sound_ltm.mp3";
 
     public ClientService(Stage primaryStage) {
         this.primaryStage = primaryStage;

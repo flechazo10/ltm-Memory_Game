@@ -8,7 +8,7 @@ public class DAO {
 
     private static final String URL_JDBC = "jdbc:mysql://localhost:3306/LTM";
     private static final String URL_USER = "root";
-    private static final String URL_PASS = "Trieu1312@";
+    private static final String URL_PASS = "Tien9a2005";
 
     protected static Connection conn;
 

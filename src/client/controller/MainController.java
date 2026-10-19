@@ -182,7 +182,7 @@ public class MainController {
             alert.setTitle("Thách đấu");
             alert.setHeaderText("Bạn có muốn thách đấu với " + player.getUsername() + "?");
 
-            String[] categories = {"badminton", "footballer", "kimesu", "onepunchman", "sakamoto"};
+            String[] categories = {"giang_ho_mang", "messi", "truong_con_nam_dinh"};
             ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList(categories));
             choiceBox.getSelectionModel().selectFirst();
             choiceBox.setMaxWidth(Double.MAX_VALUE);

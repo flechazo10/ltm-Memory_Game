@@ -31,6 +31,8 @@ public class InitServer {
             playerDAO = new PlayerDAO();
             matchDAO = new MatchDAO();
             detailMatchDAO = new DetailMatchDAO();
+            // Dọn status bẩn từ session cũ (server tắt đột ngột không kịp logout)
+            playerDAO.resetAllPlayersOffline();
             System.out.println("Game server started on port: " + port);
 
             listenForClients();
