@@ -226,6 +226,10 @@ public class ClientService {
                             handleShowCardFlip(msg);
                             break;
 
+                        case FLIP_ONE_CARD:
+                            handleOpponentFlipOne(msg);
+                            break;
+
                         case CARD_MATCHED_RESULT:
                             handleCardsMatched(msg);
                             break;
@@ -339,6 +343,14 @@ public class ClientService {
         Platform.runLater(() -> {
             if (gameRoomController != null) {
                 gameRoomController.handleCardsNotMatched(unmatchData);
+            }
+        });
+    }
+
+    private void handleOpponentFlipOne(Message msg) {
+        Platform.runLater(() -> {
+            if (gameRoomController != null && msg.getContent() instanceof Integer) {
+                gameRoomController.handleOpponentFlipOne((Integer) msg.getContent());
             }
         });
     }
