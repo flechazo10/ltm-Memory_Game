@@ -49,6 +49,7 @@ public enum MessageType {
     QUIT_GAME("QUIT_GAME"),
     QUIT_GAME_SUCCESS("QUIT_GAME_SUCCESS"),
     FLIP_CARD_RESULT("FLIP_CARD_RESULT"),
+    FLIP_ONE_CARD("FLIP_ONE_CARD"),           // Lật lá đầu tiên: client -> server -> đối thủ (đối thủ thấy ngay)
     OPPONENT_WANTS_CONTINUE("OPPONENT_WANTS_CONTINUE"),
     OPPONENT_QUIT_GAME("OPPONENT_QUIT_GAME"),
     UPDATE_SCORE("UPDATE_SCORE"),

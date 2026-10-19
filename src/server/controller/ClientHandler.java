@@ -119,6 +119,11 @@ public class ClientHandler implements Runnable {
             case PLAYER_MOVE:
                 handleFlipCard(message);
                 break;
+            case FLIP_ONE_CARD:
+                if (gameRoom != null && message.getContent() instanceof Integer) {
+                    gameRoom.handleRevealOne((Integer) message.getContent(), this);
+                }
+                break;
             case SIGN_UP:
                 handleSignUp(message);
                 break;

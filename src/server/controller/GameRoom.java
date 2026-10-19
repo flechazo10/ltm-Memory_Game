@@ -31,7 +31,9 @@ public class GameRoom {
     private static final int MATCH_TIMEOUT_MINUTES = 15;
     private static final int COUNTDOWN_SECONDS = 3;
     private static final int CARD_SHOW_MS = 300;
-    private static final long CARD_MISMATCH_DELAY_MS = 5;
+    // Chờ 2 lá sai được úp xuống trên cả 2 máy (client đợi 800ms + 300ms hiệu ứng) rồi mới đổi lượt.
+    // Trước đây = 5ms: lượt đổi trước khi bài úp xong -> người mới lật nhanh sẽ bị kẹt lá ngửa.
+    private static final long CARD_MISMATCH_DELAY_MS = 1200;
     private static final long CARD_MATCH_DELAY_MS = 5;
 
     //DAO
@@ -158,6 +160,21 @@ public class GameRoom {
         }
     }
 
+
+    /** Người đang có lượt vừa lật lá đầu tiên -> báo ngay cho đối thủ để đối thủ thấy lá đó. */
+    public void handleRevealOne(int cardIndex, ClientHandler player) {
+        ClientHandler opponent;
+        synchronized (gameLock) {
+            if (gameState != GameState.PLAYING || player != currentTurnHandler || isProcessingMove) {
+                return;
+            }
+            if (cardIndex < 0 || cardIndex >= GRID_ROWS * GRID_COLS || matchedCardIndices.contains(cardIndex)) {
+                return;
+            }
+            opponent = (player == player1Handler) ? player2Handler : player1Handler;
+        }
+        opponent.sendMessage(new Message(MessageType.FLIP_ONE_CARD, cardIndex));
+    }
 
     //Logic khi Click Card
     public void handlePlayerMove(int cardIndex1, int cardIndex2, ClientHandler player) {

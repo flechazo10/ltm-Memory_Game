@@ -59,6 +59,9 @@ public class GameRoomController implements Initializable {
 
     private Integer firstCardIndex = null;
     private Button firstCardButton = null;
+    private Integer opponentRevealedIndex = null;     // lá đầu tiên đối thủ vừa lật (đang ngửa trên máy mình)
+    private PauseTransition pendingFlipBack = null;   // đang chờ úp 2 lá lật sai
+    private int[] pendingFlipBackCards = null;
 
     @FXML private VBox rootPane;
     @FXML private GridPane tblCard;
@@ -204,6 +207,8 @@ public class GameRoomController implements Initializable {
     public void handleTurnChanged(Map<String, Object> turnData) {
         Platform.runLater(() -> {
             int currentPlayerId = (Integer) turnData.get("nextPlayerId");
+            finishPendingFlipBack();          // bài sai chưa kịp úp thì úp ngay trước khi sang lượt mới
+            opponentRevealedIndex = null;
             updateTurnState(currentPlayerId);
             resetCardSelection();
         });
@@ -219,6 +224,7 @@ public class GameRoomController implements Initializable {
             String scoredColor = (String) matchData[5]; // Viền Đỏ (RED) hoặc Xanh (BLUE) từ Server
 
             processMatchAnimation(card1Index, card2Index, scoredColor);
+            opponentRevealedIndex = null;
             matchedCardIndices.add(card1Index);
             matchedCardIndices.add(card2Index);
 
@@ -264,13 +270,14 @@ public class GameRoomController implements Initializable {
             int card1Index = (int) unmatchData[0];
             int card2Index = (int) unmatchData[1];
 
-            PauseTransition pause = new PauseTransition(Duration.millis(800));
-            pause.setOnFinished(e -> {
-                flipCardBackAnimation(card1Index);
-                flipCardBackAnimation(card2Index);
-                resetCardSelection();
-            });
-            pause.play();
+            opponentRevealedIndex = null;
+            finishPendingFlipBack();
+            // Không gọi resetCardSelection() ở đây: việc chọn bài do TURN_CHANGED quản lý.
+            // Trước đây reset ở đây làm mất lá người chơi kế tiếp vừa chọn -> lá đó kẹt ngửa.
+            pendingFlipBackCards = new int[]{card1Index, card2Index};
+            pendingFlipBack = new PauseTransition(Duration.millis(800));
+            pendingFlipBack.setOnFinished(e -> finishPendingFlipBack());
+            pendingFlipBack.play();
         });
     }
 
@@ -296,11 +303,46 @@ public class GameRoomController implements Initializable {
     }
 
     public void handleTurnTimeout(Map<String, Object> timeoutData) {
-        Platform.runLater(this::resetCardSelection);
+        Platform.runLater(() -> {
+            // Hết giờ khi mới lật 1 lá -> úp lá đó lại (cả lá của mình lẫn lá đối thủ đang ngửa)
+            if (firstCardIndex != null && !matchedCardIndices.contains(firstCardIndex)) {
+                flipCardBackAnimation(firstCardIndex);
+            }
+            if (opponentRevealedIndex != null && !matchedCardIndices.contains(opponentRevealedIndex)) {
+                flipCardBackAnimation(opponentRevealedIndex);
+            }
+            opponentRevealedIndex = null;
+            resetCardSelection();
+        });
+    }
+
+    /** Đối thủ vừa lật lá đầu tiên -> lật lá đó trên máy mình ngay. */
+    public void handleOpponentFlipOne(int index) {
+        if (isMyTurn || isGameOver || matchedCardIndices.contains(index)) return;
+        findCardButton(index).ifPresent(btn -> flipCardToShow(btn, index, null));
+        opponentRevealedIndex = index;
+    }
+
+    /** Úp ngay 2 lá lật sai đang chờ (nếu có). */
+    private void finishPendingFlipBack() {
+        if (pendingFlipBack == null) return;
+        pendingFlipBack.setOnFinished(null);
+        pendingFlipBack.stop();
+        pendingFlipBack = null;
+        int[] cards = pendingFlipBackCards;
+        pendingFlipBackCards = null;
+        if (cards != null) {
+            for (int idx : cards) {
+                if (!matchedCardIndices.contains(idx)) {
+                    flipCardBackAnimation(idx);
+                }
+            }
+        }
     }
 
     private void handleCardClick(int index, Button cardButton) {
-        if (!isMyTurn || isProcessingMove || isGameOver || matchedCardIndices.contains(index) || (firstCardIndex != null && firstCardIndex == index)) {
+        if (!isMyTurn || isProcessingMove || isGameOver || pendingFlipBack != null
+                || matchedCardIndices.contains(index) || (firstCardIndex != null && firstCardIndex == index)) {
             return;
         }
 
@@ -309,6 +351,7 @@ public class GameRoomController implements Initializable {
         if (firstCardIndex == null) {
             firstCardIndex = index;
             firstCardButton = cardButton;
+            app.sendMessage(new Message(MessageType.FLIP_ONE_CARD, index));   // cho đối thủ thấy lá đầu ngay
             flipCardToShow(cardButton, index, () -> isProcessingMove = false);
         } else {
             flipCardToShow(cardButton, index, () -> {
@@ -328,8 +371,14 @@ public class GameRoomController implements Initializable {
         Platform.runLater(() -> {
             int idx1 = (int) content[0];
             int idx2 = (int) content[1];
-            findCardButton(idx1).ifPresent(btn -> flipCardToShow(btn, idx1, null));
-            findCardButton(idx2).ifPresent(btn -> flipCardToShow(btn, idx2, null));
+            Integer alreadyShown = opponentRevealedIndex;   // lá đầu đã ngửa nhờ FLIP_ONE_CARD -> không lật lại
+            if (alreadyShown == null || alreadyShown != idx1) {
+                findCardButton(idx1).ifPresent(btn -> flipCardToShow(btn, idx1, null));
+            }
+            if (alreadyShown == null || alreadyShown != idx2) {
+                findCardButton(idx2).ifPresent(btn -> flipCardToShow(btn, idx2, null));
+            }
+            opponentRevealedIndex = null;
         });
     }
 
@@ -343,6 +392,10 @@ public class GameRoomController implements Initializable {
         isProcessingMove = false;
         isGameOver = false;
         matchedCardIndices.clear();
+        if (pendingFlipBack != null) pendingFlipBack.stop();
+        pendingFlipBack = null;
+        pendingFlipBackCards = null;
+        opponentRevealedIndex = null;
         resetCardSelection();
         txtScore1Value.setText("0");
         txtScore2Value.setText("0");
