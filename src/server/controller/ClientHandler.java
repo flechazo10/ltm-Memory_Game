@@ -65,10 +65,18 @@ public class ClientHandler implements Runnable {
             while (isRunning) {
                 Message message = (Message) in.readObject();
                 if (message != null) {
-                    handleMessage(message);
+                    try {
+                        handleMessage(message);
+                    } catch (SQLException | RuntimeException e) {
+                        // Lỗi khi xử lý 1 tin nhắn chỉ ghi log, KHÔNG làm sập kết nối của người chơi.
+                        // (Trước đây NullPointerException ở đây làm server đóng luôn socket của client.)
+                        System.out.println("Lỗi xử lý " + message.getType() + " của "
+                                + (player != null ? player.getUsername() : "client") + ": " + e);
+                        e.printStackTrace();
+                    }
                 }
             }
-        } catch (IOException | ClassNotFoundException | SQLException e) {
+        } catch (Exception e) {
             System.out.println("Kết nối với " + (player != null ? player.getUsername() : "client") + " bị ngắt.");
             isRunning = false;
             if (gameRoom != null) {
@@ -142,27 +150,24 @@ public class ClientHandler implements Runnable {
         Object[] content = (Object[]) message.getContent();
         Player player = (Player) content[0];
         Player opponent = (Player) content[1];
-        // xu li remove
-        // TODO
-        // xu li gui ve client
         System.out.println("Player " + player.getUsername() + " đã thoát phòng chơi.");
-        System.out.println("Thông báo cho đối thủ " + opponent.getUsername() + " biết.");
-        ClientHandler clientA = server.getClientHandler(player.getId());
-        ClientHandler clientB = server.getClientHandler(opponent.getId());
 
-        GameRoom gameRoom = server.getClientHandler(player.getId()).getGameRoom();
-        if (gameRoom != null) {
-            gameRoom.handlePlayerDisconnect(clientA);
+        // Người gửi QUIT_GAME chính là client này. Đối thủ có thể đã thoát/mất kết nối -> có thể null.
+        ClientHandler clientB = (opponent != null) ? server.getClientHandler(opponent.getId()) : null;
+
+        GameRoom room = this.gameRoom;
+        if (room != null) {
+            room.handlePlayerDisconnect(this);
         } else {
-            System.out.println("Khong tim thay GameRoom");
+            System.out.println("Khong tim thay GameRoom (phòng đã đóng)");
         }
 
-        PlayerDAO playerDAO =  new PlayerDAO();
         playerDAO.updatePlayerStatus(player.getId(), String.valueOf(Status.ONLINE));
 
-        // gui message ve client
-        clientA.sendMessage(new Message(MessageType.QUIT_GAME_SUCCESS, "Bạn đã thoát phòng chơi."));
-        clientB.sendMessage(new Message(MessageType.QUIT_GAME_SUCCESS, "Đối thủ đã rời phòng chơi."));
+        sendMessage(new Message(MessageType.QUIT_GAME_SUCCESS, "Bạn đã thoát phòng chơi."));
+        if (clientB != null && clientB != this && clientB.isConnected()) {
+            clientB.sendMessage(new Message(MessageType.QUIT_GAME_SUCCESS, "Đối thủ đã rời phòng chơi."));
+        }
     }
 
     private void handleSignUp(Message message) throws IOException, SQLException {
@@ -394,9 +399,17 @@ public class ClientHandler implements Runnable {
     }
 
     //ham gui tin nhan
-    public void sendMessage(Message message) {
+    /** Còn kết nối với client hay không (dùng khi dọn phòng để không đặt người đã thoát về ONLINE). */
+    public boolean isConnected() {
+        return isRunning && socket != null && !socket.isClosed();
+    }
+
+    // synchronized: nhiều luồng (luồng của client khác, luồng hẹn giờ của GameRoom) có thể cùng gửi
+    // cho 1 client; ghi chồng lên cùng ObjectOutputStream sẽ làm hỏng stream.
+    public synchronized void sendMessage(Message message) {
         try {
             if (socket != null && !socket.isClosed()) {
+                out.reset();   // không gửi lại bản cũ đã cache của cùng 1 object
                 out.writeObject(message);
                 out.flush();
             } else {

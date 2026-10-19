@@ -290,6 +290,13 @@ public class GameRoomController implements Initializable {
             if (leavingRoom) return;
 
             int winnerId = (int) resultData.get("winnerId");
+            Object left = resultData.get("leftPlayerId");
+            int leftPlayerId = (left instanceof Integer) ? (Integer) left : -1;
+            if (leftPlayerId != -1) {
+                if (leftPlayerId == userPlayer.getId()) return;   // chính mình bấm rời trận -> sắp về sảnh, không hiện kết quả
+                showOpponentLeftDialog();
+                return;
+            }
             String text;
             if (winnerId == -1) {
                 text = "HÒA TRẬN!";
@@ -788,6 +795,29 @@ public class GameRoomController implements Initializable {
         alert.setTitle("Lỗi");
         alert.setHeaderText(null);
         alert.showAndWait();
+    }
+
+    /** Đối thủ thoát / mất kết nối giữa trận: chỉ cho về sảnh, không có "Chơi tiếp". */
+    private void showOpponentLeftDialog() {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("KẾT THÚC TRẬN ĐẤU");
+        alert.setHeaderText("ĐỐI THỦ ĐÃ THOÁT — BẠN THẮNG! 🎉");
+        alert.setContentText("Đối thủ đã rời trận hoặc mất kết nối.\nBạn được tính thắng.");
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setMinWidth(460);
+        dialogPane.getStyleClass().add("my-alert");
+        URL cssFile = AlertController.class.getResource("/client/view/main.css");
+        if (cssFile != null) {
+            dialogPane.getStylesheets().add(cssFile.toExternalForm());
+        }
+        ButtonType homeButton = new ButtonType("Về sảnh chính", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(homeButton);
+
+        resultAlert = alert;
+        alert.showAndWait();
+        resultAlert = null;
+        if (leavingRoom) return;
+        leaveAfterGame();
     }
 
     private void showResultDialog(String title, String header) {

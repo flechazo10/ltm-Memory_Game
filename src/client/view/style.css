@@ -105,7 +105,6 @@
     -fx-font-weight: bold;
     -fx-font-size: 14px;
     -fx-cursor: hand;
-    -fx-effect: null;
 }
 .button:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-blue, 12%) 0%, derive(-k-blue, 12%) 80%, -k-blue 81%, -k-blue 100%); }
 .button:pressed {
@@ -297,7 +296,6 @@
     -fx-font-weight: bold;
     -fx-text-fill: white;
     -fx-content-display: center;
-    -fx-effect: null;
 }
 .memory-card:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-blue, 12%) 0%, derive(-k-blue, 12%) 80%, -k-blue 81%, -k-blue 100%); }
 .memory-card:pressed { -fx-background-insets: 4 0 0 0, 7 3 3 3; -fx-padding: 8 4 4 4; }
