@@ -62,6 +62,7 @@ public class GameRoom {
     private ScheduledFuture<?> cleanupTask;
     private Boolean player1WantsRematch = false;
     private Boolean player2WantsRematch = false;
+    private int leftPlayerId = -1;   // id người thoát/mất kết nối giữa trận (-1 = trận kết thúc bình thường)
 
 
     // Dem so lan timeout lien tiep
@@ -92,6 +93,7 @@ public class GameRoom {
             if (gameState != GameState.WAITING_FOR_START &&  gameState != GameState.ENDED) return;
             this.player1WantsRematch = false;
             this.player2WantsRematch = false;
+            this.leftPlayerId = -1;
             gameState = GameState.COUNTDOWN;
         }
         for (int i = COUNTDOWN_SECONDS; i >= 1; i--) {
@@ -413,6 +415,9 @@ public class GameRoom {
             resultData.put("winnerId", winnerId);
             resultData.put("player1FinalPairs", player1Pairs);
             resultData.put("player2FinalPairs", player2Pairs);
+            // Thoát giữa trận: báo cho client biết ai đã rời để người còn lại không được mời "Chơi tiếp"
+            leftPlayerId = (wasDisconnect && loser != null) ? loser.getPlayer().getId() : -1;
+            resultData.put("leftPlayerId", leftPlayerId);
             sendToBoth(new Message(MessageType.GAME_END, resultData));
 
             // tre 5s de client nhan tin nhan
@@ -435,8 +440,14 @@ public class GameRoom {
     private void cleanupAndCloseRoom() {
         try {
             // cap nhat Online sau khi xong game
-            playerDAO.updatePlayerStatus(player1Handler.getPlayer().getId(), "ONLINE");
-            playerDAO.updatePlayerStatus(player2Handler.getPlayer().getId(), "ONLINE");
+            // Chỉ đặt ONLINE cho người còn kết nối; người đã tắt client giữ nguyên OFFLINE
+            // (trước đây cả 2 đều bị đặt ONLINE -> người đã thoát thành "người ma" trong danh sách).
+            if (player1Handler.isConnected()) {
+                playerDAO.updatePlayerStatus(player1Handler.getPlayer().getId(), "ONLINE");
+            }
+            if (player2Handler.isConnected()) {
+                playerDAO.updatePlayerStatus(player2Handler.getPlayer().getId(), "ONLINE");
+            }
 
             List<Player> onlineUsers = playerDAO.getOnlinePlayers();
             player1Handler.getServer().broadcast(new Message(MessageType.ONLINE_LIST_UPDATE, onlineUsers));
@@ -523,6 +534,16 @@ public class GameRoom {
 
     public synchronized void playerWantsReplay(ClientHandler handler) throws IOException {
         if(gameState != GameState.ENDED) {
+            return;
+        }
+        // Đối thủ đã rời phòng / mất kết nối -> không thể chơi lại, đưa người này về sảnh luôn
+        ClientHandler other = (handler == player1Handler) ? player2Handler : player1Handler;
+        if (leftPlayerId != -1 || !other.isConnected()) {
+            if (this.cleanupTask != null) {
+                this.cleanupTask.cancel(false);
+            }
+            cleanupAndCloseRoom();
+            handler.sendMessage(new Message(MessageType.RETURN_TO_LOBBY, "Đối thủ đã rời phòng chơi, không thể chơi lại."));
             return;
         }
         if(this.cleanupTask != null) {
