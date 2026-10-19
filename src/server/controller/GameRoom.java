@@ -24,15 +24,10 @@ public class GameRoom {
 
     // Dinh nghia hang so
     private enum GameState { WAITING_FOR_START, COUNTDOWN, PLAYING, ENDED }
-    private static final int GRID_ROWS = 4;
-    private static final int GRID_COLS = 6;
-    private static final int MAX_PAIRS = (GRID_ROWS * GRID_COLS) / 2;
     private static final int TURN_TIMEOUT_SECONDS = 15;
     private static final int MATCH_TIMEOUT_MINUTES = 15;
     private static final int COUNTDOWN_SECONDS = 3;
     private static final int CARD_SHOW_MS = 300;
-    // Chờ 2 lá sai được úp xuống trên cả 2 máy (client đợi 800ms + 300ms hiệu ứng) rồi mới đổi lượt.
-    // Trước đây = 5ms: lượt đổi trước khi bài úp xong -> người mới lật nhanh sẽ bị kẹt lá ngửa.
     private static final long CARD_MISMATCH_DELAY_MS = 1200;
     private static final long CARD_MATCH_DELAY_MS = 5;
 
@@ -49,6 +44,11 @@ public class GameRoom {
     private int player2Pairs;
     private ClientHandler currentTurnHandler;
     private final String selectedTheme;
+    private final String difficulty;
+    // Kich thuoc san duoc tinh tu difficulty
+    private final int gridRows;
+    private final int gridCols;
+    private final int maxPairs;
 
     //Xy ly trong Game
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -77,14 +77,20 @@ public class GameRoom {
     private volatile boolean isProcessingMove = false;
     private String endReason;
 
-    public GameRoom(ClientHandler player1, ClientHandler player2, PlayerDAO playerDAO, MatchDAO matchDAO, DetailMatchDAO detailMatchDAO, String theme) {
+    public GameRoom(ClientHandler player1, ClientHandler player2, PlayerDAO playerDAO, MatchDAO matchDAO, DetailMatchDAO detailMatchDAO, String theme, String difficulty) {
         this.player1Handler = player1;
         this.player2Handler = player2;
         this.playerDAO = playerDAO;
         this.matchDAO = matchDAO;
         this.detailMatchDAO = detailMatchDAO;
         this.selectedTheme = theme;
-        //Khi khởi tạo game ở InviteRespone nó sẽ gọi hàm này để chuẩn bị đếm nguọc bắt đầu trận đấu
+        this.difficulty = (difficulty != null) ? difficulty : "hard";
+        switch (this.difficulty) {
+            case "easy":   this.gridRows = 2; this.gridCols = 4; break;
+            case "medium": this.gridRows = 4; this.gridCols = 4; break;
+            default:       this.gridRows = 4; this.gridCols = 6; break; // hard
+        }
+        this.maxPairs = (this.gridRows * this.gridCols) / 2;
         startCountdown();
     }
 
@@ -136,7 +142,10 @@ public class GameRoom {
                 gameData.put("player2", player2Handler.getPlayer());
                 gameData.put("firstTurnPlayerId", firstTurnPlayerId);
                 gameData.put("theme", selectedTheme);
-                gameData.put("matchTimeLimit", MATCH_TIMEOUT_MINUTES * 60); // giây, để client hiện đồng hồ trận
+                gameData.put("difficulty", difficulty);
+                gameData.put("gridRows", gridRows);
+                gameData.put("gridCols", gridCols);
+                gameData.put("matchTimeLimit", MATCH_TIMEOUT_MINUTES * 60);
 
                 sendToBoth(new Message(MessageType.START_GAME, gameData));
 
@@ -170,7 +179,7 @@ public class GameRoom {
             if (gameState != GameState.PLAYING || player != currentTurnHandler || isProcessingMove) {
                 return;
             }
-            if (cardIndex < 0 || cardIndex >= GRID_ROWS * GRID_COLS || matchedCardIndices.contains(cardIndex)) {
+            if (cardIndex < 0 || cardIndex >= gridRows * gridCols || matchedCardIndices.contains(cardIndex)) {
                 return;
             }
             opponent = (player == player1Handler) ? player2Handler : player1Handler;
@@ -199,8 +208,8 @@ public class GameRoom {
             }
         }
 
-        int val1 = matrix[cardIndex1 / GRID_COLS][cardIndex1 % GRID_COLS];
-        int val2 = matrix[cardIndex2 / GRID_COLS][cardIndex2 % GRID_COLS];
+        int val1 = matrix[cardIndex1 / gridCols][cardIndex1 % gridCols];
+        int val2 = matrix[cardIndex2 / gridCols][cardIndex2 % gridCols];
         boolean isMatch = (val1 == val2);
 
         Object[] moveData = {cardIndex1, cardIndex2, val1, val2};
@@ -241,7 +250,7 @@ public class GameRoom {
             matchData[5] = (playerWhoScored == player1Handler) ? player1Color : player2Color;
             sendToBoth(new Message(MessageType.CARD_MATCHED_RESULT, matchData));
 
-            if ((player1Pairs + player2Pairs) == MAX_PAIRS) {
+            if ((player1Pairs + player2Pairs) == maxPairs) {
                 ClientHandler winner = (player1Pairs > player2Pairs) ? player1Handler : ((player2Pairs > player1Pairs) ? player2Handler : null);
                 ClientHandler loser = (winner == null) ? null : (winner == player1Handler ? player2Handler : player1Handler);
                 endMatch(winner, loser, false);
@@ -488,40 +497,48 @@ public class GameRoom {
     //Ham xu ly sinh anh
     private void createMatrixAndCacheImages() throws IOException {
         this.imageCache = new HashMap<>();
-        // Load ảnh và mã hóa Base64
-        for (int id = 0; id < MAX_PAIRS; id++) {
-            String fileName = String.format("img%02d.jpg", id + 1);
+        // Tong so anh co trong thu muc chu de (luon la 12)
+        int totalImages = 12;
+
+        // Chon ngau nhien maxPairs anh khong trung nhau tu 12 anh co san
+        List<Integer> allIds = new ArrayList<>();
+        for (int i = 0; i < totalImages; i++) allIds.add(i);
+        Collections.shuffle(allIds);
+        List<Integer> chosenIds = allIds.subList(0, maxPairs); // lay maxPairs anh dau
+
+        // Load anh va ma hoa Base64
+        for (int idx = 0; idx < maxPairs; idx++) {
+            int imageNumber = chosenIds.get(idx) + 1; // img01...img12
+            String fileName = String.format("img%02d.jpg", imageNumber);
             String resourcePath = "/assets/images/" + selectedTheme + "/" + fileName;
             byte[] bytes;
-
             try (var inputStream = GameRoom.class.getResourceAsStream(resourcePath)) {
                 if (inputStream == null) {
-                    // Check lỗi nếu khônng load được ảnh
-                    throw new IOException("Không tìm thấy file tài nguyên: " + resourcePath);
+                    throw new IOException("Khong tim thay file tai nguyen: " + resourcePath);
                 }
                 bytes = inputStream.readAllBytes();
             }
             String base64Image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(bytes);
-            imageCache.put(id, base64Image);
+            imageCache.put(idx, base64Image); // key 0..maxPairs-1
         }
 
-        // Tạo mảng chỉ số và xáo trộn
+        // Tao mang chi so cap bai va xao tron
         List<Integer> ids = new ArrayList<>();
-        for (int i = 0; i < MAX_PAIRS; i++) {
+        for (int i = 0; i < maxPairs; i++) {
             ids.add(i);
             ids.add(i);
         }
         Collections.shuffle(ids);
 
-        // Đổ vào ma trận
-        this.matrix = new int[GRID_ROWS][GRID_COLS];
-
+        // Do vao ma tran gridRows x gridCols
+        this.matrix = new int[gridRows][gridCols];
         for (int i = 0; i < ids.size(); i++) {
-            matrix[i / GRID_COLS][i % GRID_COLS] = ids.get(i);
+            matrix[i / gridCols][i % gridCols] = ids.get(i);
         }
-        //In ma tran test cho nhanh
-        for (int i = 0; i < GRID_ROWS; i++) {
-            for (int j = 0; j < GRID_COLS; j++) {
+        // In ma tran de kiem tra
+        System.out.println("[GameRoom] Do kho: " + difficulty + " (" + gridRows + "x" + gridCols + ")");
+        for (int i = 0; i < gridRows; i++) {
+            for (int j = 0; j < gridCols; j++) {
                 System.out.print(matrix[i][j] + " ");
             }
             System.out.println();

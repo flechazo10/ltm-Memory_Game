@@ -188,9 +188,17 @@ public class MainController {
             choiceBox.setMaxWidth(Double.MAX_VALUE);
             VBox.setVgrow(choiceBox, Priority.ALWAYS);
 
+            // Chọn độ khó
+            String[] difficulties = {"Dễ (2x4)", "Vừa (4x4)", "Khó (6x4)"};
+            ChoiceBox<String> diffBox = new ChoiceBox<>(FXCollections.observableArrayList(difficulties));
+            diffBox.getSelectionModel().select(2); // mặc định Khó
+            diffBox.setMaxWidth(Double.MAX_VALUE);
+            VBox.setVgrow(diffBox, Priority.ALWAYS);
+
             Label label = new Label("Chọn chủ đề: ");
+            Label labelDiff = new Label("Độ khó: ");
             VBox boxContent = new VBox(10);
-            boxContent.getChildren().addAll(label, choiceBox);
+            boxContent.getChildren().addAll(label, choiceBox, labelDiff, diffBox);
             alert.getDialogPane().setContent(boxContent);
 
             DialogPane dialogPane = alert.getDialogPane();
@@ -209,7 +217,13 @@ public class MainController {
                 if (result == btnOk) {
                     try {
                         String selected = choiceBox.getValue();
-                        Object[] content = {userLogin, player, selected};
+                        // Map tên hiển thị → key gửi server
+                        String diffDisplay = diffBox.getValue();
+                        String difficulty;
+                        if (diffDisplay.startsWith("Dễ"))      difficulty = "easy";
+                        else if (diffDisplay.startsWith("Vừa")) difficulty = "medium";
+                        else                                    difficulty = "hard";
+                        Object[] content = {userLogin, player, selected, difficulty};
                         app.sendMessage(new Message(MessageType.INVITE_REQUEST, content));
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -219,10 +233,12 @@ public class MainController {
         }
     }
 
-    public void showAcceptDialog(Player fromPlayer, String category) {
+    public void showAcceptDialog(Player fromPlayer, String category, String difficulty) {
+        String diffLabel = "easy".equals(difficulty) ? "Dễ (2x4)"
+                         : "medium".equals(difficulty) ? "Vừa (4x4)" : "Khó (6x4)";
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Lời mời thách đấu");
-        alert.setHeaderText(fromPlayer.getUsername() + " mời bạn thi đấu chủ đề " + category);
+        alert.setHeaderText(fromPlayer.getUsername() + " mời bạn thi đấu chủ đề " + category + " [Độ khó: " + diffLabel + "]");
         alert.setContentText("Bạn có chấp nhận không?");
 
         DialogPane dialogPane = alert.getDialogPane();
@@ -240,7 +256,7 @@ public class MainController {
         alert.showAndWait().ifPresent(result -> {
             boolean accepted = (result == btnOk);
             try {
-                Object[] content = {userLogin, fromPlayer, accepted, category};
+                Object[] content = {userLogin, fromPlayer, accepted, category, difficulty};
                 app.sendMessage(new Message(MessageType.INVITE_RESPONSE, content));
             } catch (Exception e) {
                 e.printStackTrace();

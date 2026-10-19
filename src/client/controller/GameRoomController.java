@@ -27,9 +27,9 @@ import java.util.*;
 
 public class GameRoomController implements Initializable {
 
-    // Khớp hoàn toàn với GameRoom: 4x6 (24 lá), 15 giây/lượt
-    private static final int GRID_ROWS = 4;
-    private static final int GRID_COLS = 6;
+    // Khop voi GameRoom: kich thuoc luoi duoc server gui qua START_GAME
+    private int gridRows = 4;  // mac dinh hard
+    private int gridCols = 6;
     private static final int CARD_SIZE = 90;
     private static final int TURN_TIME_SECONDS = 15;
     private static final int DEFAULT_MATCH_SECONDS = 15 * 60;   // trùng GameRoom.MATCH_TIMEOUT_MINUTES
@@ -189,6 +189,13 @@ public class GameRoomController implements Initializable {
 
                 int firstTurnPlayerId = (int) gameData.get("firstTurnPlayerId");
                 String theme = (String) gameData.get("theme");
+
+                // Nhan kich thuoc luoi tu server
+                Object grRows = gameData.get("gridRows");
+                Object grCols = gameData.get("gridCols");
+                if (grRows instanceof Integer) this.gridRows = (Integer) grRows;
+                if (grCols instanceof Integer) this.gridCols = (Integer) grCols;
+
                 if (theme != null) {
                     changeBackgroundByTheme(theme);
                     changeBackCardByTheme(theme);
@@ -499,9 +506,9 @@ public class GameRoomController implements Initializable {
     private void createGameBoard() {
         tblCard.getChildren().clear();
         double delay = 0;
-        for (int i = 0; i < GRID_ROWS * GRID_COLS; i++) {
-            int row = i / GRID_COLS;
-            int col = i % GRID_COLS;
+        for (int i = 0; i < gridRows * gridCols; i++) {
+            int row = i / gridCols;
+            int col = i % gridCols;
             Button cardButton = createCardButton(i);
             tblCard.add(cardButton, col, row);
             dealCardEffect(cardButton, delay);
@@ -778,8 +785,8 @@ public class GameRoomController implements Initializable {
     }
 
     private Optional<Node> findNodeInGrid(GridPane gridPane, int index) {
-        int col = index % GRID_COLS;
-        int row = index / GRID_COLS;
+        int col = index % gridCols;
+        int row = index / gridCols;
         for (Node node : gridPane.getChildren()) {
             Integer r = GridPane.getRowIndex(node);
             Integer c = GridPane.getColumnIndex(node);
