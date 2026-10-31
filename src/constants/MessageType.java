@@ -49,7 +49,11 @@ public enum MessageType {
     QUIT_GAME("QUIT_GAME"),
     QUIT_GAME_SUCCESS("QUIT_GAME_SUCCESS"),
     FLIP_CARD_RESULT("FLIP_CARD_RESULT"),
-    FLIP_ONE_CARD("FLIP_ONE_CARD"),           // Lật lá đầu tiên: client -> server -> đối thủ (đối thủ thấy ngay)
+    FLIP_ONE_CARD("FLIP_ONE_CARD"),
+    DRAW_OFFER("DRAW_OFFER"),                 // Cầu hòa: client -> server -> đối thủ (nội dung gửi đối thủ: tên người xin)
+    DRAW_RESPONSE("DRAW_RESPONSE"),           // Trả lời cầu hòa: client -> server (Boolean: true = đồng ý)
+    DRAW_REJECTED("DRAW_REJECTED"),           // Báo cho người xin hòa: bị từ chối / hết hạn (String)
+    SURRENDER("SURRENDER"),                   // Xin thua: client -> server           // Lật lá đầu tiên: client -> server -> đối thủ (đối thủ thấy ngay)
     OPPONENT_WANTS_CONTINUE("OPPONENT_WANTS_CONTINUE"),
     OPPONENT_QUIT_GAME("OPPONENT_QUIT_GAME"),
     UPDATE_SCORE("UPDATE_SCORE"),

@@ -30,6 +30,8 @@ public class MainController {
     private boolean isMusicOn;
 
     @FXML private Label lblWelcome;
+    @FXML private Label lblMyName;
+    @FXML private Label lblMyScore;
     @FXML private TableView<Player> tblPlayers;
     @FXML private TableColumn<Player, String> colName;
     @FXML private TableColumn<Player, Double> colScore; // Đổi sang Double
@@ -55,13 +57,39 @@ public class MainController {
 
     public void updatePlayersList(List<Player> list) {
         players.clear();
-        players.addAll(list);
+        for (Player p : list) {
+            if (userLogin != null && p.getId() == userLogin.getId()) {
+                // Không hiện chính mình trong bảng; lấy điểm mới nhất của mình từ server để cập nhật box "Của tôi"
+                userLogin.setTotalScore(p.getTotalScore());
+                showMyInfo();
+            } else {
+                players.add(p);
+            }
+        }
         tblPlayers.setItems(players);
     }
 
     public void setUserLogin(Player userLogin) {
         this.userLogin = userLogin;
-        lblWelcome.setText("Xin chào, " + userLogin.getUsername() + " · " + formatScore(userLogin.getTotalScore()) + " điểm");
+        lblWelcome.setText("Xin chào, " + userLogin.getUsername());
+        showMyInfo();
+        // danh sách có thể đã về trước khi biết mình là ai -> lọc lại
+        if (players.removeIf(p -> p.getId() == userLogin.getId())) {
+            tblPlayers.setItems(players);
+        }
+    }
+
+    private void showMyInfo() {
+        if (userLogin == null) return;
+        if (lblMyName != null) lblMyName.setText(userLogin.getUsername());
+        if (lblMyScore != null) lblMyScore.setText(formatScore(userLogin.getTotalScore()) + " điểm");
+    }
+
+    @FXML
+    private void onMyHistory() {
+        if (app != null && userLogin != null) {
+            app.openMyHistory(userLogin);
+        }
     }
 
     @FXML
@@ -209,7 +237,7 @@ public class MainController {
                 dialogPane.getStylesheets().add(cssFile.toExternalForm());
             }
 
-            ButtonType btnOk = new ButtonType("Đồng ý");
+            ButtonType btnOk = new ButtonType("Đồng ý", ButtonBar.ButtonData.OK_DONE);   // nút chính -> xanh lá
             ButtonType btnCancel = new ButtonType("Hủy", ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(btnOk, btnCancel);
 
@@ -249,7 +277,7 @@ public class MainController {
             dialogPane.getStylesheets().add(cssFile.toExternalForm());
         }
 
-        ButtonType btnOk = new ButtonType("Chấp nhận");
+        ButtonType btnOk = new ButtonType("Chấp nhận", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnCancel = new ButtonType("Từ chối", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btnOk, btnCancel);
 

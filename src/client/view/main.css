@@ -52,6 +52,10 @@
 /* Sảnh chờ */
 .side-panel { -fx-spacing: 14; }
 .tip-text { -fx-text-fill: #5c5038; -fx-font-size: 12px; -fx-font-weight: normal; -fx-wrap-text: true; }
+/* Box "Của tôi" ở cột phải sảnh */
+.me-name  { -fx-font-size: 20px; -fx-font-weight: bold; }
+.me-score { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #d98a00; }
+
 .welcome-chip {
     -fx-background-color: #3a3a3a, white;
     -fx-background-insets: 0, 3;

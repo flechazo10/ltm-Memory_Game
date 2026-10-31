@@ -66,6 +66,17 @@
         <VBox styleClass="side-panel" prefWidth="250.0">
             <BorderPane.margin><Insets top="24.0" right="24.0" bottom="24.0" left="12.0"/></BorderPane.margin>
             <children>
+                <!-- Thông tin của chính mình (không hiện mình trong bảng người chơi nữa) -->
+                <VBox styleClass="panel, me-panel" spacing="6.0">
+                    <children>
+                        <Label styleClass="player-role" text="CỦA TÔI"/>
+                        <Label fx:id="lblMyName" styleClass="me-name" text="Tên"/>
+                        <Label fx:id="lblMyScore" styleClass="me-score" text="0 điểm"/>
+                        <Button styleClass="btn-yellow, btn-menu" text="Lịch sử đấu của tôi" maxWidth="Infinity" onAction="#onMyHistory">
+                            <VBox.margin><Insets top="4.0"/></VBox.margin>
+                        </Button>
+                    </children>
+                </VBox>
                 <VBox styleClass="panel" spacing="10.0">
                     <children>
                         <Label styleClass="section-title" text="Menu"/>

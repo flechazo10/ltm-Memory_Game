@@ -40,6 +40,7 @@ public class ClientService {
 
     private List<Player> cachedHistoryList;
     private String selectedPlayerName;
+    private boolean historyDetailFromLobby = false;   // vào màn chi tiết lịch sử từ box "Của tôi" ở sảnh
 
     private volatile boolean isConnected = false;
     private String serverHost;
@@ -55,6 +56,23 @@ public class ClientService {
 
     public void setSelectedPlayerName(String name) {
         this.selectedPlayerName = name;
+        this.historyDetailFromLobby = false;   // mặc định: vào từ danh sách Lịch sử đấu
+    }
+
+    /** Nút "Lịch sử đấu của tôi" ở sảnh: mở thẳng chi tiết lịch sử của mình. */
+    public void openMyHistory(Player me) {
+        this.selectedPlayerName = me.getUsername();
+        this.historyDetailFromLobby = true;
+        sendMessage(new Message(MessageType.GET_HISTORY_DETAIL, me.getId()));
+    }
+
+    /** Nút "← Quay lại" ở màn chi tiết lịch sử: về đúng màn đã mở nó. */
+    public void backFromHistoryDetail() {
+        if (historyDetailFromLobby || cachedHistoryList == null) {
+            showMainUI();
+        } else {
+            showHistoryUI(cachedHistoryList);
+        }
     }
 
     public String getSelectedPlayerName() {
@@ -229,6 +247,18 @@ public class ClientService {
 
                         case FLIP_ONE_CARD:
                             handleOpponentFlipOne(msg);
+                            break;
+
+                        case DRAW_OFFER:
+                            Platform.runLater(() -> {
+                                if (gameRoomController != null) gameRoomController.handleDrawOffer(String.valueOf(msg.getContent()));
+                            });
+                            break;
+
+                        case DRAW_REJECTED:
+                            Platform.runLater(() -> {
+                                if (gameRoomController != null) gameRoomController.handleDrawRejected(String.valueOf(msg.getContent()));
+                            });
                             break;
 
                         case CARD_MATCHED_RESULT:

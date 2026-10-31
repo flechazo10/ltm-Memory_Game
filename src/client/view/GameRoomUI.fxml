@@ -61,12 +61,32 @@
                                                 <Label fx:id="txtScore1Value" styleClass="score-value" text="0"/>
                                             </children>
                                         </StackPane>
+                                        <!-- Cầu hòa / xin thua -->
+                                        <VBox spacing="8.0" fillWidth="true">
+                                            <VBox.margin><Insets top="12.0"/></VBox.margin>
+                                            <children>
+                                                <Button fx:id="btnDraw" styleClass="btn-yellow, btn-small" text="Cầu hòa (còn 3)"
+                                                        maxWidth="Infinity" onAction="#onDrawButton"/>
+                                                <Button fx:id="btnSurrender" styleClass="btn-neutral, btn-small" text="Xin thua"
+                                                        maxWidth="Infinity" onAction="#onSurrenderButton"/>
+                                            </children>
+                                        </VBox>
                                     </children>
                                 </VBox>
 
                                 <VBox styleClass="board-panel" alignment="TOP_CENTER" spacing="12.0">
                                     <children>
                                         <Label fx:id="lblTurnIndicator" styleClass="turn-indicator" text="CHUẨN BỊ..."/>
+                                        <!-- Dải thông báo cầu hòa: không chặn bàn bài, không dừng đồng hồ -->
+                                        <HBox fx:id="drawBanner" styleClass="draw-banner" alignment="CENTER_LEFT" spacing="10.0"
+                                              visible="false" managed="false" prefWidth="500.0" maxWidth="500.0">
+                                            <children>
+                                                <Label fx:id="lblDrawBanner" styleClass="draw-banner-text" text="" wrapText="true"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button fx:id="btnDrawAccept" styleClass="btn-green, btn-small" text="Đồng ý hòa" onAction="#onDrawAccept"/>
+                                                <Button fx:id="btnDrawDecline" styleClass="btn-danger, btn-small" text="Từ chối" onAction="#onDrawDecline"/>
+                                            </children>
+                                        </HBox>
                                         <HBox alignment="CENTER" spacing="10.0">
                                             <children>
                                                 <ProgressBar fx:id="timeBar" prefWidth="460.0" prefHeight="10.0" progress="1.0"/>
