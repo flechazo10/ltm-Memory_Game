@@ -294,31 +294,27 @@ public class ClientHandler implements Runnable {
     private void handleInvitePlayer(Message message) throws IOException {
         Object[] content = (Object[]) message.getContent();
         Player fromPlayer = (Player) content[0];
-        Player toPlayer = (Player) content[1];
+        Player toPlayer   = (Player) content[1];
         String selectedTheme = (String) content[2];
+        String difficulty    = content.length > 3 ? (String) content[3] : "hard";
 
         ClientHandler fromClient = server.getClientHandler(fromPlayer.getId());
-        ClientHandler toClient = server.getClientHandler(toPlayer.getId());
+        ClientHandler toClient   = server.getClientHandler(toPlayer.getId());
 
-        //Set themes
         if (fromClient != null) {
             fromClient.setSelectedTheme(selectedTheme);
         }
 
         if (toClient != null) {
             System.out.println("HANDLER TO PLAYER: @" + toClient.hashCode());
-
             if (this.hashCode() == toClient.hashCode()) {
                 System.out.println("ERROR: HANDLER FROM = HANDLER TO");
             } else {
                 System.out.println("STATUS: OK! SENDING...");
             }
-
-            Object[] sendContent = { fromPlayer, selectedTheme };
-            // Gửi tin nhắn đi
+            Object[] sendContent = { fromPlayer, selectedTheme, difficulty };
             toClient.sendMessage(new Message(MessageType.INVITE_INCOMING, sendContent));
             System.out.println("Inviation has been sent to: " + toPlayer.getUsername());
-
         } else {
             System.out.println("!!!! LỖI: KHÔNG TÌM THẤY CLIENT HANDLER cho ID " + toPlayer.getId() + " !!!!");
             sendMessage(new Message(MessageType.INVITE_ERROR, "Người chơi không khả dụng"));
@@ -330,31 +326,31 @@ public class ClientHandler implements Runnable {
         // Lay thong tin tu tin nhan
         Object[] content = (Object[]) message.getContent();
         Player player_receive_request = (Player) content[0]; // người nhận lời mời (2)
-        Player player_send_request = (Player) content[1]; // người gửi lời mời (1)
-        boolean accepted = (boolean) content[2];
-        String theme = (String) content[3];
+        Player player_send_request    = (Player) content[1]; // người gửi lời mời (1)
+        boolean accepted   = (boolean) content[2];
+        String theme       = (String) content[3];
+        String difficulty  = content.length > 4 ? (String) content[4] : "hard";
 
         // Tim ClientHanlder cua nguoi moi (1)
-        ClientHandler client_send_request = server.getClientHandler(player_send_request.getId());
+        ClientHandler client_send_request    = server.getClientHandler(player_send_request.getId());
         ClientHandler client_receive_request = this;
         if (accepted) {
-            Object[] sendContent = {player_receive_request, player_send_request, true, theme};
+            Object[] sendContent = {player_receive_request, player_send_request, true, theme, difficulty};
             client_send_request.sendMessage(new Message(MessageType.INVITE_RESULT, sendContent));
             client_receive_request.sendMessage(new Message(MessageType.INVITE_RESULT, sendContent));
 
-            //Khoi tao tran dau
+            //Khoi tao tran dau — truyền thêm difficulty
             GameRoom room = new GameRoom(
                     client_send_request,
                     client_receive_request,
                     server.getPlayerDAO(),
                     server.getMatchDAO(),
                     server.getDetailMatchDAO(),
-                    theme
+                    theme,
+                    difficulty
             );
 
-            this.gameRoom = room; // luu lai game room
-
-            // gan phong va cap nhat trang thai
+            this.gameRoom = room;
             client_send_request.setGameRoom(room);
             client_receive_request.setGameRoom(room);
 

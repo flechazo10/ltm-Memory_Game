@@ -149,9 +149,10 @@ public class ClientService {
                             Object[] inviteContent = (Object[]) msg.getContent();
                             Player fromPlayer = (Player) inviteContent[0];
                             String category = (String) inviteContent[1];
+                            String difficulty = (String) inviteContent[2];
                             Platform.runLater(() -> {
                                 if (mainController != null) {
-                                    mainController.showAcceptDialog(fromPlayer, category);
+                                    mainController.showAcceptDialog(fromPlayer, category, difficulty);
                                 }
                             });
                             break;
