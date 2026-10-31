@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Menu chính sau khi đăng nhập. Mỗi nút gồm dòng tiêu đề + dòng mô tả nhỏ. -->
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="client.controller.MenuController"
+           styleClass="app-root" prefWidth="1000.0" prefHeight="680.0"
+           stylesheets="@style.css, @menu.css">
+    <children>
+        <VBox styleClass="menu-card" alignment="TOP_CENTER" spacing="10.0" maxWidth="460.0" maxHeight="-Infinity">
+            <children>
+                <Label styleClass="menu-title" text="LẬT BÀI ONLINE"/>
+                <Label fx:id="lblHello" styleClass="menu-subtitle" text="Xin chào"/>
+
+                <Button styleClass="menu-btn, menu-play" maxWidth="Infinity" onAction="#onPlay">
+                    <VBox.margin><Insets top="8.0"/></VBox.margin>
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="▶  PLAY"/>
+                                <Label styleClass="menu-btn-sub" text="Chọn chủ đề và tìm đối thủ"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button styleClass="menu-btn" maxWidth="Infinity" onAction="#onDifficulty">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="ĐỘ KHÓ"/>
+                                <Label fx:id="lblDifficulty" styleClass="menu-btn-sub" text="Khó (4x6)"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button styleClass="menu-btn" maxWidth="Infinity" onAction="#onSound">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="ÂM THANH"/>
+                                <Label fx:id="lblSound" styleClass="menu-btn-sub" text="Bật"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button styleClass="menu-btn" maxWidth="Infinity" onAction="#onRanking">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="BẢNG XẾP HẠNG"/>
+                                <Label styleClass="menu-btn-sub" text="Thành tích người chơi"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button styleClass="menu-btn" maxWidth="Infinity" onAction="#onHistory">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="LỊCH SỬ ĐẤU"/>
+                                <Label styleClass="menu-btn-sub" text="Các trận đã chơi"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button styleClass="menu-btn" maxWidth="Infinity" onAction="#onGuide">
+                    <graphic>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="HƯỚNG DẪN"/>
+                                <Label styleClass="menu-btn-sub" text="Luật chơi và cách tính điểm"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+
+                <Button styleClass="menu-btn, menu-logout" maxWidth="Infinity" onAction="#onLogout">
+                    <graphic>
+                        <VBox alignment="CENTER">
+                            <children>
+                                <Label styleClass="menu-btn-title" text="ĐĂNG XUẤT"/>
+                            </children>
+                        </VBox>
+                    </graphic>
+                </Button>
+            </children>
+        </VBox>
+    </children>
+</StackPane>

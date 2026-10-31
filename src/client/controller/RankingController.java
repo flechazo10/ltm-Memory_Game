@@ -76,7 +76,7 @@ public class RankingController {
     @FXML
     private void onBack() {
         if (client != null) {
-            client.showMainUI();
+            client.backFromLists();
         }
     }
 }

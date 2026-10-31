@@ -41,6 +41,38 @@ public class ClientService {
     private List<Player> cachedHistoryList;
     private String selectedPlayerName;
     private boolean historyDetailFromLobby = false;   // vào màn chi tiết lịch sử từ box "Của tôi" ở sảnh
+    private boolean listsOpenedFromMenu = false;      // Bảng xếp hạng / Lịch sử mở từ Menu chính (quay lại Menu) hay từ sảnh
+
+    // ===== Chủ đề + độ khó người chơi chọn ở Menu / màn chọn chủ đề =====
+    /** Mã chủ đề (tên thư mục trong assets/images) và tên hiển thị. Thêm chủ đề: thêm 1 dòng ở đây. */
+    public static final String[][] THEMES = {
+            {"giang_ho_mang", "Giang Hồ Mạng"},
+            {"messi", "Messi"},
+            {"truong_con_nam_dinh", "Trường Còn Nam Định"},
+    };
+    public static final String[] DIFFICULTIES = {"easy", "medium", "hard"};
+    private String selectedTheme = THEMES[0][0];
+    private String selectedDifficulty = "hard";
+
+    public static String themeName(String key) {
+        for (String[] t : THEMES) if (t[0].equals(key)) return t[1];
+        return key;
+    }
+    public static String difficultyLabel(String d) {
+        if ("easy".equals(d)) return "Dễ (2x4)";
+        if ("medium".equals(d)) return "Vừa (4x4)";
+        return "Khó (4x6)";
+    }
+    public String getSelectedTheme() { return selectedTheme; }
+    public void setSelectedTheme(String theme) { this.selectedTheme = theme; }
+    public String getSelectedDifficulty() { return selectedDifficulty; }
+    public void setSelectedDifficulty(String d) { this.selectedDifficulty = d; }
+    public void setListsOpenedFromMenu(boolean fromMenu) { this.listsOpenedFromMenu = fromMenu; }
+
+    /** Nút quay lại ở Bảng xếp hạng / danh sách Lịch sử. */
+    public void backFromLists() {
+        if (listsOpenedFromMenu) showMenuUI(); else showMainUI();
+    }
 
     private volatile boolean isConnected = false;
     private String serverHost;
@@ -140,7 +172,7 @@ public class ClientService {
                         case LOGIN_SUCCESS:
                             currentPlayer = (Player) msg.getContent();
                             setupMusic();
-                            Platform.runLater(this::showMainUI);
+                            Platform.runLater(this::showMenuUI);   // đăng nhập xong -> Menu chính
                             break;
 
                         case LOGIN_FAILURE:
@@ -192,7 +224,8 @@ public class ClientService {
                             Platform.runLater(() -> {
                                 AlertController.showAlert("Đăng xuất", "Bạn đã đăng xuất.");
                                 showLoginUI();
-                                setMusicOn(false);
+                                // dừng nhạc nhưng giữ lựa chọn Bật/Tắt cho lần đăng nhập sau
+                                if (mediaPlayer != null) mediaPlayer.stop();
                             });
                             break;
 
@@ -555,6 +588,36 @@ public class ClientService {
 
             primaryStage.setScene(scene);
             primaryStage.setTitle("Lật Bài Online - Đăng nhập");
+            primaryStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Menu chính sau khi đăng nhập: Play, Độ khó, Âm thanh, Bảng xếp hạng, Lịch sử đấu, Hướng dẫn, Đăng xuất. */
+    public void showMenuUI() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/client/view/MenuUI.fxml"));
+            Scene scene = new Scene(loader.load());
+            MenuController controller = loader.getController();
+            controller.setClient(this);
+            primaryStage.setTitle("Lật Bài Online - Menu");
+            primaryStage.setScene(scene);
+            primaryStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Màn chọn chủ đề (bấm PLAY ở Menu). */
+    public void showThemeSelectUI() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/client/view/ThemeSelectUI.fxml"));
+            Scene scene = new Scene(loader.load());
+            ThemeSelectController controller = loader.getController();
+            controller.setClient(this, scene);
+            primaryStage.setTitle("Lật Bài Online - Chọn chủ đề");
+            primaryStage.setScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();

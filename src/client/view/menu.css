@@ -1,0 +1,71 @@
+/* Menu chính + màn chọn chủ đề (dùng chung biến màu trong style.css) */
+
+.menu-card {
+    -fx-background-color: -k-ink, #1f3f73;
+    -fx-background-insets: 0, 4 4 10 4;
+    -fx-background-radius: 20, 16;
+    -fx-padding: 24 28 32 28;
+}
+.menu-title {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(one-pass-box, -k-ink, 0, 0, 0, 3);
+}
+.menu-subtitle { -fx-text-fill: #c9dcff; -fx-font-size: 13px; }
+
+/* Nút menu: 2 dòng chữ, nền xanh đậm nổi */
+.menu-btn {
+    -fx-background-color: -k-ink, linear-gradient(to bottom, #2f5ea8 0%, #2f5ea8 82%, #234a86 83%, #234a86 100%);
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 12, 9;
+    -fx-padding: 8 16 12 16;
+    -fx-content-display: graphic-only;
+}
+.menu-btn:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, #3a6dbd 0%, #3a6dbd 82%, #2f5ea8 83%, #2f5ea8 100%); }
+.menu-btn-title { -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; }
+.menu-btn-sub   { -fx-text-fill: #c9dcff; -fx-font-size: 12px; -fx-font-weight: normal; }
+
+.menu-play {
+    -fx-background-color: -k-ink, linear-gradient(to bottom, -k-blue 0%, -k-blue 82%, -k-blue-dark 83%, -k-blue-dark 100%);
+    -fx-padding: 12 16 16 16;
+}
+.menu-play:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-blue, 12%) 0%, derive(-k-blue, 12%) 82%, -k-blue 83%, -k-blue 100%); }
+.menu-play .menu-btn-title { -fx-font-size: 22px; }
+.menu-play .menu-btn-sub { -fx-text-fill: #e6f0ff; }
+
+.menu-logout { -fx-background-color: -k-ink, linear-gradient(to bottom, -k-red 0%, -k-red 82%, -k-red-dark 83%, -k-red-dark 100%); }
+.menu-logout:hover { -fx-background-color: -k-ink, linear-gradient(to bottom, derive(-k-red, 12%) 0%, derive(-k-red, 12%) 82%, -k-red 83%, -k-red 100%); }
+
+/* ===== Màn chọn chủ đề ===== */
+.theme-banner {
+    -fx-background-color: -k-ink, -k-blue;
+    -fx-background-insets: 0, 3 3 7 3;
+    -fx-background-radius: 6, 4;
+    -fx-padding: 10 20 16 20;
+}
+.theme-banner-text {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(one-pass-box, -k-ink, 0, 0, 0, 3);
+}
+.theme-frame {
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 10 4;
+    -fx-background-radius: 22, 18;
+    -fx-padding: 12 12 18 12;
+}
+.theme-side { -fx-opacity: 0.45; }
+.theme-side-label { -fx-text-fill: white; -fx-font-size: 13px; -fx-effect: dropshadow(one-pass-box, -k-ink, 0, 0, 0, 2); }
+.theme-arrow {
+    -fx-font-size: 22px;
+    -fx-min-width: 56; -fx-min-height: 56;
+    -fx-background-radius: 28, 25;
+}
+.theme-hint { -fx-text-fill: #24506e; -fx-font-size: 12px; -fx-font-weight: normal; }
+.theme-dot { -fx-min-width: 12; -fx-min-height: 12; -fx-max-width: 12; -fx-max-height: 12;
+             -fx-background-radius: 6; -fx-background-color: rgba(58,58,58,0.35); }
+.theme-dot-active { -fx-background-color: -k-ink; }
+.btn-enter { -fx-font-size: 26px; -fx-padding: 10 60 16 60; }
+.btn-enter:pressed { -fx-padding: 16 60 10 60; }

@@ -92,6 +92,28 @@ public class GameRoomController implements Initializable {
     private boolean incomingDrawOffer = false;      // đối thủ đang xin hòa mình
     private PauseTransition bannerHideTimer = null;
 
+    // Hiệu ứng âm thanh (file trong src/assets/sound/). Thiếu file thì bỏ qua, game vẫn chạy.
+    private static final javafx.scene.media.AudioClip SOUND_FLIP = loadSound("/assets/sound/lat_the.mp3");
+    private static final javafx.scene.media.AudioClip SOUND_MATCH = loadSound("/assets/sound/lat_thang.mp3");
+    private static final javafx.scene.media.AudioClip SOUND_WRONG = loadSound("/assets/sound/lat_khong_dung.mp3");
+
+    private static javafx.scene.media.AudioClip loadSound(String path) {
+        try {
+            URL url = GameRoomController.class.getResource(path);
+            return url == null ? null : new javafx.scene.media.AudioClip(url.toExternalForm());
+        } catch (Exception e) {
+            System.err.println("Không tải được âm thanh " + path + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Phát hiệu ứng nếu đang bật âm thanh (nút Âm thanh ở Menu / nút Nhạc trong trận). */
+    private void playSound(javafx.scene.media.AudioClip clip) {
+        if (clip != null && app != null && app.isMusicOn()) {
+            clip.play();
+        }
+    }
+
     private boolean isMusicOn;
     private Timeline turnTimeline;
     private Timeline matchTimeline;
@@ -240,6 +262,7 @@ public class GameRoomController implements Initializable {
 
     public void handleCardsMatched(Object[] matchData) {
         Platform.runLater(() -> {
+            playSound(SOUND_MATCH);
             int card1Index = (int) matchData[0];
             int card2Index = (int) matchData[1];
             Player matchedPlayer = (Player) matchData[2];
@@ -291,6 +314,7 @@ public class GameRoomController implements Initializable {
 
     public void handleCardsNotMatched(Object[] unmatchData) {
         Platform.runLater(() -> {
+            playSound(SOUND_WRONG);
             int card1Index = (int) unmatchData[0];
             int card2Index = (int) unmatchData[1];
 
@@ -586,6 +610,7 @@ public class GameRoomController implements Initializable {
         if (card == null) return;
         String base64Image = imageCache.get(matrixConfig[index]);
         ImageView frontView = createImageViewFromBase64(base64Image);
+        playSound(SOUND_FLIP);
         createFlipAnimation(card, frontView, onFinished).play();
         card.setText(null);
     }

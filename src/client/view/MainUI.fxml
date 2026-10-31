@@ -19,11 +19,13 @@
     <top>
         <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="12.0">
             <children>
+                <Button text="☰ Menu" onAction="#onBackToMenu"/>
                 <Label styleClass="brand" text="Lật Bài Online"/>
+                <Label fx:id="lblSelection" styleClass="welcome-chip" text="Chủ đề · Độ khó"/>
+                <Button styleClass="btn-neutral, btn-small" text="Đổi chủ đề" onAction="#onChangeTheme"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="lblWelcome" styleClass="welcome-chip" text="Xin chào"/>
                 <Button fx:id="btnMusic" styleClass="btn-yellow" text="Nhạc: Bật" onAction="#onMusic"/>
-                <Button styleClass="btn-danger" text="Đăng xuất" onAction="#onLogout"/>
             </children>
         </HBox>
     </top>
@@ -87,7 +89,7 @@
                 <VBox styleClass="panel" spacing="8.0">
                     <children>
                         <Label styleClass="section-title" text="Luật chơi"/>
-                        <Label styleClass="tip-text" text="• 24 lá (12 cặp) úp trên lưới 4×6."/>
+                        <Label styleClass="tip-text" text="• Độ khó chọn ở Menu: Dễ 2×4, Vừa 4×4, Khó 4×6."/>
                         <Label styleClass="tip-text" text="• Mỗi lượt có 15 giây để lật 2 lá. Trùng cặp được +1 điểm và lật tiếp."/>
                         <Label styleClass="tip-text" text="• Trận tối đa 15 phút. Thắng +1, hòa +0.5, thua 0 điểm xếp hạng."/>
                         <Label styleClass="tip-text" text="• Hết giờ 3 lượt liên tiếp hoặc thoát giữa chừng sẽ bị xử thua."/>
