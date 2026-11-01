@@ -30,6 +30,9 @@ public class MainController {
     private boolean isMusicOn;
 
     @FXML private Label lblWelcome;
+    @FXML private Label lblMyName;
+    @FXML private Label lblMyScore;
+    @FXML private Label lblSelection;
     @FXML private TableView<Player> tblPlayers;
     @FXML private TableColumn<Player, String> colName;
     @FXML private TableColumn<Player, Double> colScore; // Đổi sang Double
@@ -55,13 +58,52 @@ public class MainController {
 
     public void updatePlayersList(List<Player> list) {
         players.clear();
-        players.addAll(list);
+        for (Player p : list) {
+            if (userLogin != null && p.getId() == userLogin.getId()) {
+                // Không hiện chính mình trong bảng; lấy điểm mới nhất của mình từ server để cập nhật box "Của tôi"
+                userLogin.setTotalScore(p.getTotalScore());
+                showMyInfo();
+            } else {
+                players.add(p);
+            }
+        }
         tblPlayers.setItems(players);
     }
 
     public void setUserLogin(Player userLogin) {
         this.userLogin = userLogin;
-        lblWelcome.setText("Xin chào, " + userLogin.getUsername() + " · " + formatScore(userLogin.getTotalScore()) + " điểm");
+        lblWelcome.setText("Xin chào, " + userLogin.getUsername());
+        if (lblSelection != null && app != null) {
+            lblSelection.setText(ClientService.themeName(app.getSelectedTheme()) + " · " + ClientService.difficultyLabel(app.getSelectedDifficulty()));
+        }
+        showMyInfo();
+        // danh sách có thể đã về trước khi biết mình là ai -> lọc lại
+        if (players.removeIf(p -> p.getId() == userLogin.getId())) {
+            tblPlayers.setItems(players);
+        }
+    }
+
+    private void showMyInfo() {
+        if (userLogin == null) return;
+        if (lblMyName != null) lblMyName.setText(userLogin.getUsername());
+        if (lblMyScore != null) lblMyScore.setText(formatScore(userLogin.getTotalScore()) + " điểm");
+    }
+
+    @FXML
+    private void onChangeTheme() {
+        if (app != null) app.showThemeSelectUI();
+    }
+
+    @FXML
+    private void onBackToMenu() {
+        if (app != null) app.showMenuUI();
+    }
+
+    @FXML
+    private void onMyHistory() {
+        if (app != null && userLogin != null) {
+            app.openMyHistory(userLogin);
+        }
     }
 
     @FXML
@@ -72,6 +114,7 @@ public class MainController {
     @FXML
     public void onHistory() {
         if (app != null) {
+            app.setListsOpenedFromMenu(false);
             app.sendMessage(new Message(MessageType.GET_HISTORY, null));
         }
     }
@@ -79,6 +122,7 @@ public class MainController {
     @FXML
     private void onRanking() {
         if (app != null) {
+            app.setListsOpenedFromMenu(false);
             app.sendMessage(new Message(MessageType.GET_RANKING, null));
         }
     }
@@ -178,67 +222,39 @@ public class MainController {
         if (player == null || userLogin == null) return;
         String status = player.getStatus() != null ? player.getStatus().toUpperCase() : "";
         if (status.equals(String.valueOf(Status.ONLINE)) && !player.getUsername().equals(userLogin.getUsername())) {
+            // Chủ đề + độ khó đã chọn từ trước (Menu -> chọn chủ đề), ở đây chỉ hỏi xác nhận
+            String theme = app.getSelectedTheme();
+            String difficulty = app.getSelectedDifficulty();
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Thách đấu");
-            alert.setHeaderText("Bạn có muốn thách đấu với " + player.getUsername() + "?");
-
-            String[] categories = {"giang_ho_mang", "messi", "truong_con_nam_dinh"};
-            ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList(categories));
-            choiceBox.getSelectionModel().selectFirst();
-            choiceBox.setMaxWidth(Double.MAX_VALUE);
-            VBox.setVgrow(choiceBox, Priority.ALWAYS);
-
-            // Chọn độ khó
-            String[] difficulties = {"Dễ (2x4)", "Vừa (4x4)", "Khó (6x4)"};
-            ChoiceBox<String> diffBox = new ChoiceBox<>(FXCollections.observableArrayList(difficulties));
-            diffBox.getSelectionModel().select(2); // mặc định Khó
-            diffBox.setMaxWidth(Double.MAX_VALUE);
-            VBox.setVgrow(diffBox, Priority.ALWAYS);
-
-            Label label = new Label("Chọn chủ đề: ");
-            Label labelDiff = new Label("Độ khó: ");
-            VBox boxContent = new VBox(10);
-            boxContent.getChildren().addAll(label, choiceBox, labelDiff, diffBox);
-            alert.getDialogPane().setContent(boxContent);
+            alert.setHeaderText("Mời " + player.getUsername() + " thi đấu?");
+            alert.setContentText("Chủ đề: " + ClientService.themeName(theme) + "\nĐộ khó: " + ClientService.difficultyLabel(difficulty));
 
             DialogPane dialogPane = alert.getDialogPane();
             dialogPane.getStyleClass().add("my-alert");
-
             URL cssFile = getClass().getResource("/client/view/main.css");
             if (cssFile != null) {
                 dialogPane.getStylesheets().add(cssFile.toExternalForm());
             }
 
-            ButtonType btnOk = new ButtonType("Đồng ý");
+            ButtonType btnOk = new ButtonType("Mời", ButtonBar.ButtonData.OK_DONE);   // nút chính -> xanh lá
             ButtonType btnCancel = new ButtonType("Hủy", ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(btnOk, btnCancel);
 
             alert.showAndWait().ifPresent(result -> {
                 if (result == btnOk) {
-                    try {
-                        String selected = choiceBox.getValue();
-                        // Map tên hiển thị → key gửi server
-                        String diffDisplay = diffBox.getValue();
-                        String difficulty;
-                        if (diffDisplay.startsWith("Dễ"))      difficulty = "easy";
-                        else if (diffDisplay.startsWith("Vừa")) difficulty = "medium";
-                        else                                    difficulty = "hard";
-                        Object[] content = {userLogin, player, selected, difficulty};
-                        app.sendMessage(new Message(MessageType.INVITE_REQUEST, content));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    Object[] content = {userLogin, player, theme, difficulty};
+                    app.sendMessage(new Message(MessageType.INVITE_REQUEST, content));
                 }
             });
         }
     }
 
     public void showAcceptDialog(Player fromPlayer, String category, String difficulty) {
-        String diffLabel = "easy".equals(difficulty) ? "Dễ (2x4)"
-                         : "medium".equals(difficulty) ? "Vừa (4x4)" : "Khó (6x4)";
+        String diffLabel = ClientService.difficultyLabel(difficulty);
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Lời mời thách đấu");
-        alert.setHeaderText(fromPlayer.getUsername() + " mời bạn thi đấu chủ đề " + category + " [Độ khó: " + diffLabel + "]");
+        alert.setHeaderText(fromPlayer.getUsername() + " mời bạn thi đấu chủ đề " + ClientService.themeName(category) + " [Độ khó: " + diffLabel + "]");
         alert.setContentText("Bạn có chấp nhận không?");
 
         DialogPane dialogPane = alert.getDialogPane();
@@ -249,7 +265,7 @@ public class MainController {
             dialogPane.getStylesheets().add(cssFile.toExternalForm());
         }
 
-        ButtonType btnOk = new ButtonType("Chấp nhận");
+        ButtonType btnOk = new ButtonType("Chấp nhận", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnCancel = new ButtonType("Từ chối", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(btnOk, btnCancel);
 

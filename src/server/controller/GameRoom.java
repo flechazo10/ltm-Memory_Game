@@ -77,6 +77,13 @@ public class GameRoom {
     private volatile boolean isProcessingMove = false;
     private String endReason;
 
+    // Cầu hòa / xin thua
+    private static final int MAX_DRAW_OFFERS = 3;   // mỗi người tối đa 3 lần cầu hòa / trận
+    private ClientHandler drawOfferFrom = null;     // người đang chờ đối thủ trả lời cầu hòa (null = không có)
+    private int player1DrawOffers = 0;
+    private int player2DrawOffers = 0;
+    private int surrenderedPlayerId = -1;
+
     public GameRoom(ClientHandler player1, ClientHandler player2, PlayerDAO playerDAO, MatchDAO matchDAO, DetailMatchDAO detailMatchDAO, String theme, String difficulty) {
         this.player1Handler = player1;
         this.player2Handler = player2;
@@ -100,6 +107,10 @@ public class GameRoom {
             this.player1WantsRematch = false;
             this.player2WantsRematch = false;
             this.leftPlayerId = -1;
+            this.drawOfferFrom = null;
+            this.player1DrawOffers = 0;
+            this.player2DrawOffers = 0;
+            this.surrenderedPlayerId = -1;
             gameState = GameState.COUNTDOWN;
         }
         for (int i = COUNTDOWN_SECONDS; i >= 1; i--) {
@@ -172,8 +183,69 @@ public class GameRoom {
     }
 
 
+    // ===================== CẦU HÒA / XIN THUA =====================
+    // Cầu hòa kiểu game cờ online: KHÔNG dừng đồng hồ, không chặn người nhận.
+    // Người nhận thấy dải thông báo [Đồng ý] [Từ chối]; cứ lật bài tiếp là coi như từ chối;
+    // lời đề nghị tự hết hạn khi lượt chuyển sang người khác.
+
+    public void handleDrawOffer(ClientHandler from) {
+        ClientHandler opponent;
+        synchronized (gameLock) {
+            if (gameState != GameState.PLAYING || drawOfferFrom != null) return;
+            if (from == player1Handler) {
+                if (player1DrawOffers >= MAX_DRAW_OFFERS) return;
+                player1DrawOffers++;
+            } else {
+                if (player2DrawOffers >= MAX_DRAW_OFFERS) return;
+                player2DrawOffers++;
+            }
+            drawOfferFrom = from;
+            opponent = (from == player1Handler) ? player2Handler : player1Handler;
+        }
+        opponent.sendMessage(new Message(MessageType.DRAW_OFFER, from.getPlayer().getUsername()));
+    }
+
+    public void handleDrawResponse(ClientHandler responder, boolean accept) {
+        synchronized (gameLock) {
+            if (gameState != GameState.PLAYING || drawOfferFrom == null || responder == drawOfferFrom) return;
+            if (accept) {
+                drawOfferFrom = null;
+                endMatch(null, null, false);   // hòa: mỗi người +0.5
+            } else {
+                declineDrawOffer("Đối thủ đã từ chối cầu hòa.");
+            }
+        }
+    }
+
+    public void handleSurrender(ClientHandler who) {
+        synchronized (gameLock) {
+            if (gameState != GameState.PLAYING) return;
+            ClientHandler winner = (who == player1Handler) ? player2Handler : player1Handler;
+            surrenderedPlayerId = who.getPlayer().getId();
+            endMatch(winner, who, false);      // thua bình thường (không tính là thoát), vẫn ở lại phòng
+        }
+    }
+
+    /** Huỷ lời cầu hòa đang chờ và báo cho người đã xin. Gọi trong synchronized(gameLock). */
+    private void declineDrawOffer(String reason) {
+        if (drawOfferFrom == null) return;
+        ClientHandler proposer = drawOfferFrom;
+        drawOfferFrom = null;
+        proposer.sendMessage(new Message(MessageType.DRAW_REJECTED, reason));
+    }
+
+    /** Người nhận lời cầu hòa mà lật bài tiếp -> coi như từ chối. */
+    private void declineDrawIfResponderMoves(ClientHandler mover) {
+        synchronized (gameLock) {
+            if (drawOfferFrom != null && mover != drawOfferFrom) {
+                declineDrawOffer("Đối thủ đã từ chối cầu hòa.");
+            }
+        }
+    }
+
     /** Người đang có lượt vừa lật lá đầu tiên -> báo ngay cho đối thủ để đối thủ thấy lá đó. */
     public void handleRevealOne(int cardIndex, ClientHandler player) {
+        declineDrawIfResponderMoves(player);
         ClientHandler opponent;
         synchronized (gameLock) {
             if (gameState != GameState.PLAYING || player != currentTurnHandler || isProcessingMove) {
@@ -189,6 +261,7 @@ public class GameRoom {
 
     //Logic khi Click Card
     public void handlePlayerMove(int cardIndex1, int cardIndex2, ClientHandler player) {
+        declineDrawIfResponderMoves(player);
         synchronized (gameLock) {
             if (gameState != GameState.PLAYING || player != currentTurnHandler || isProcessingMove) {
                 return;
@@ -294,6 +367,10 @@ public class GameRoom {
     private void requestNextTurn(ClientHandler nextPlayer) {
         synchronized (gameLock) {
 
+            // Lượt chuyển sang người khác -> lời cầu hòa đang chờ hết hạn
+            if (drawOfferFrom != null && nextPlayer != currentTurnHandler) {
+                declineDrawOffer("Lời cầu hòa đã hết hạn (đã sang lượt mới).");
+            }
             currentTurnHandler = nextPlayer;
             if (gameState != GameState.PLAYING) return;
 
@@ -427,6 +504,8 @@ public class GameRoom {
             // Thoát giữa trận: báo cho client biết ai đã rời để người còn lại không được mời "Chơi tiếp"
             leftPlayerId = (wasDisconnect && loser != null) ? loser.getPlayer().getId() : -1;
             resultData.put("leftPlayerId", leftPlayerId);
+            resultData.put("surrenderedPlayerId", surrenderedPlayerId);
+            drawOfferFrom = null;
             sendToBoth(new Message(MessageType.GAME_END, resultData));
 
             // tre 5s de client nhan tin nhan

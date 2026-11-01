@@ -301,4 +301,15 @@
 .memory-card:pressed { -fx-background-insets: 4 0 0 0, 7 3 3 3; -fx-padding: 8 4 4 4; }
 .memory-card:disabled { -fx-opacity: 1; }
 
+/* Cầu hòa / xin thua */
+.btn-small { -fx-font-size: 12px; -fx-padding: 6 10 10 10; }
+.btn-small:pressed { -fx-padding: 10 10 6 10; }
+.draw-banner {
+    -fx-background-color: -k-ink, #ffe27a;
+    -fx-background-insets: 0, 3;
+    -fx-background-radius: 12, 9;
+    -fx-padding: 8 10 8 14;
+}
+.draw-banner-text { -fx-font-size: 14px; -fx-font-weight: bold; }
+
 .countdown-dim { -fx-background-color: rgba(30, 60, 90, 0.55); }

@@ -147,7 +147,7 @@ public class HistoryDetailController {
     @FXML
     private void onLogout() {
         if (app != null) {
-            app.showHistoryUI(app.getCachedHistoryList());
+            app.backFromHistoryDetail();
         }
     }
 }

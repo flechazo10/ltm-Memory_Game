@@ -56,14 +56,22 @@ Mặc định các màn (đăng nhập, sảnh, xếp hạng...) dùng nền xá
 1. Đặt ảnh vào `assets/images/background/app_bg.jpg`
 2. Mở `src/client/view/style.css`, tìm khối `.app-root`, bỏ comment 2 dòng `-fx-background-image` và `-fx-background-size`
 
-## 5. Nhạc nền — tuỳ chọn
+## 5. Âm thanh
 
-```
-assets/sound/ifinitycastle.mp3
-```
+| Dùng khi | File |
+|---|---|
+| Nhạc nền | `assets/sound/sound_ltm.mp3` (đổi tên: sửa `MUSIC_PATH` trong `ClientService.java`) |
+| Lật 1 lá | `assets/sound/lat_the.mp3` |
+| Lật trúng cặp | `assets/sound/lat_thang.mp3` |
+| Lật sai cặp | `assets/sound/lat_khong_dung.mp3` |
 
-- Định dạng **MP3**. Thiếu file thì game chạy không có nhạc.
-- Muốn đổi tên file: sửa `MUSIC_PATH` trong `src/client/service/ClientService.java`
+- Định dạng **MP3**. Thiếu file nào thì chỉ mất âm thanh đó, game vẫn chạy.
+- Nút **ÂM THANH** ở Menu (và nút Nhạc trong sảnh/trận) bật/tắt cả nhạc nền lẫn hiệu ứng.
+- Đổi tên file hiệu ứng: sửa 3 dòng `SOUND_...` đầu `GameRoomController.java`.
+
+## Ảnh đại diện chủ đề
+
+Màn chọn chủ đề dùng luôn `assets/images/<chủ đề>/img01.jpg` (tự cắt lấy hình vuông ở giữa).
 
 ## 6. Không còn dùng
 
@@ -74,9 +82,9 @@ assets/sound/ifinitycastle.mp3
 ## Muốn đổi / thêm chủ đề
 
 1. Tạo thư mục `assets/images/<tên mới>/` với đủ `img01.jpg` … `img12.jpg`
-2. Thêm tên vào mảng `categories` trong `src/client/controller/MainController.java` (hàm `showInviteDialog`)
+2. Thêm 1 dòng `{"<tên thư mục>", "<Tên hiển thị>"}` vào mảng `THEMES` trong `src/client/service/ClientService.java`
 3. (Tuỳ chọn) Thêm ảnh nền / mặt sau trong 2 bảng `THEME_BACKGROUNDS`, `THEME_BACK_CARDS` ở đầu `src/client/controller/GameRoomController.java`
 
 ## Đổi màu giao diện
 
-Mở `src/client/view/style.css`, sửa các biến `-c-...` trong khối `.root` ở đầu file (ví dụ `-c-accent` là màu nhấn xanh dương).
+Mở `src/client/view/style.css`, sửa các biến `-k-...` trong khối `.root` ở đầu file (ví dụ `-k-blue` là màu nút chính).

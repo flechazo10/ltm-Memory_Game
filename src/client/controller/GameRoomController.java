@@ -78,6 +78,41 @@ public class GameRoomController implements Initializable {
     @FXML private Label lblTurnIndicator;
     @FXML private AnchorPane background;
     @FXML private Label lblMatchTime;
+    @FXML private Button btnDraw;
+    @FXML private Button btnSurrender;
+    @FXML private HBox drawBanner;
+    @FXML private Label lblDrawBanner;
+    @FXML private Button btnDrawAccept;
+    @FXML private Button btnDrawDecline;
+
+    // Cầu hòa: mỗi người tối đa 3 lần / trận (server cũng kiểm tra)
+    private static final int MAX_DRAW_OFFERS = 3;
+    private int drawOffersLeft = MAX_DRAW_OFFERS;
+    private boolean myDrawPending = false;          // mình đã xin hòa, đang chờ đối thủ
+    private boolean incomingDrawOffer = false;      // đối thủ đang xin hòa mình
+    private PauseTransition bannerHideTimer = null;
+
+    // Hiệu ứng âm thanh (file trong src/assets/sound/). Thiếu file thì bỏ qua, game vẫn chạy.
+    private static final javafx.scene.media.AudioClip SOUND_FLIP = loadSound("/assets/sound/lat_the.mp3");
+    private static final javafx.scene.media.AudioClip SOUND_MATCH = loadSound("/assets/sound/lat_thang.mp3");
+    private static final javafx.scene.media.AudioClip SOUND_WRONG = loadSound("/assets/sound/lat_khong_dung.mp3");
+
+    private static javafx.scene.media.AudioClip loadSound(String path) {
+        try {
+            URL url = GameRoomController.class.getResource(path);
+            return url == null ? null : new javafx.scene.media.AudioClip(url.toExternalForm());
+        } catch (Exception e) {
+            System.err.println("Không tải được âm thanh " + path + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Phát hiệu ứng nếu đang bật âm thanh (nút Âm thanh ở Menu / nút Nhạc trong trận). */
+    private void playSound(javafx.scene.media.AudioClip clip) {
+        if (clip != null && app != null && app.isMusicOn()) {
+            clip.play();
+        }
+    }
 
     private boolean isMusicOn;
     private Timeline turnTimeline;
@@ -215,6 +250,10 @@ public class GameRoomController implements Initializable {
         Platform.runLater(() -> {
             int currentPlayerId = (Integer) turnData.get("nextPlayerId");
             finishPendingFlipBack();          // bài sai chưa kịp úp thì úp ngay trước khi sang lượt mới
+            if (incomingDrawOffer && currentPlayerId != (isMyTurn ? userPlayer.getId() : opponentPlayer.getId())) {
+                incomingDrawOffer = false;    // sang lượt mới -> lời cầu hòa của đối thủ hết hạn
+                hideDrawBanner();
+            }
             opponentRevealedIndex = null;
             updateTurnState(currentPlayerId);
             resetCardSelection();
@@ -223,6 +262,7 @@ public class GameRoomController implements Initializable {
 
     public void handleCardsMatched(Object[] matchData) {
         Platform.runLater(() -> {
+            playSound(SOUND_MATCH);
             int card1Index = (int) matchData[0];
             int card2Index = (int) matchData[1];
             Player matchedPlayer = (Player) matchData[2];
@@ -274,6 +314,7 @@ public class GameRoomController implements Initializable {
 
     public void handleCardsNotMatched(Object[] unmatchData) {
         Platform.runLater(() -> {
+            playSound(SOUND_WRONG);
             int card1Index = (int) unmatchData[0];
             int card2Index = (int) unmatchData[1];
 
@@ -294,6 +335,10 @@ public class GameRoomController implements Initializable {
             if (turnTimeline != null) turnTimeline.stop();
             if (matchTimeline != null) matchTimeline.stop();
             tblCard.setDisable(true);
+            myDrawPending = false;
+            incomingDrawOffer = false;
+            hideDrawBanner();
+            updateDrawButtons();
             if (leavingRoom) return;
 
             int winnerId = (int) resultData.get("winnerId");
@@ -304,8 +349,14 @@ public class GameRoomController implements Initializable {
                 showOpponentLeftDialog();
                 return;
             }
+            Object sur = resultData.get("surrenderedPlayerId");
+            int surrenderedId = (sur instanceof Integer) ? (Integer) sur : -1;
             String text;
-            if (winnerId == -1) {
+            if (surrenderedId == userPlayer.getId()) {
+                text = "BẠN ĐÃ XIN THUA.";
+            } else if (surrenderedId != -1) {
+                text = "ĐỐI THỦ XIN THUA — BẠN THẮNG! 🎉";
+            } else if (winnerId == -1) {
                 text = "HÒA TRẬN!";
             } else if (winnerId == userPlayer.getId()) {
                 text = "BẠN ĐÃ THẮNG CUỘC! 🎉";
@@ -359,6 +410,10 @@ public class GameRoomController implements Initializable {
                 || matchedCardIndices.contains(index) || (firstCardIndex != null && firstCardIndex == index)) {
             return;
         }
+        if (incomingDrawOffer) {   // lật bài tiếp = từ chối cầu hòa (server tự xử lý)
+            incomingDrawOffer = false;
+            hideDrawBanner();
+        }
 
         isProcessingMove = true;
 
@@ -411,6 +466,11 @@ public class GameRoomController implements Initializable {
         pendingFlipBackCards = null;
         opponentRevealedIndex = null;
         resetCardSelection();
+        drawOffersLeft = MAX_DRAW_OFFERS;
+        myDrawPending = false;
+        incomingDrawOffer = false;
+        hideDrawBanner();
+        updateDrawButtons();
         txtScore1Value.setText("0");
         txtScore2Value.setText("0");
         tblCard.getChildren().clear();
@@ -550,6 +610,7 @@ public class GameRoomController implements Initializable {
         if (card == null) return;
         String base64Image = imageCache.get(matrixConfig[index]);
         ImageView frontView = createImageViewFromBase64(base64Image);
+        playSound(SOUND_FLIP);
         createFlipAnimation(card, frontView, onFinished).play();
         card.setText(null);
     }
@@ -802,6 +863,94 @@ public class GameRoomController implements Initializable {
         alert.setTitle("Lỗi");
         alert.setHeaderText(null);
         alert.showAndWait();
+    }
+
+    // ===================== CẦU HÒA / XIN THUA =====================
+
+    @FXML
+    private void onDrawButton() {
+        if (isGameOver || myDrawPending || incomingDrawOffer || drawOffersLeft <= 0) return;
+        app.sendMessage(new Message(MessageType.DRAW_OFFER, null));
+        drawOffersLeft--;
+        myDrawPending = true;
+        updateDrawButtons();
+        showDrawBanner("Đã gửi lời cầu hòa, chờ đối thủ trả lời...", false, 0);
+    }
+
+    @FXML
+    private void onSurrenderButton() {
+        if (isGameOver) return;
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Đối thủ sẽ được tính thắng. Bạn vẫn ở lại phòng và có thể chơi tiếp ván mới.",
+                ButtonType.YES, ButtonType.NO);
+        alert.setTitle("Xin thua");
+        alert.setHeaderText("Bạn chắc chắn muốn xin thua?");
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStyleClass().add("my-alert");
+        URL cssFile = AlertController.class.getResource("/client/view/main.css");
+        if (cssFile != null) dialogPane.getStylesheets().add(cssFile.toExternalForm());
+        alert.showAndWait().ifPresent(r -> {
+            if (r == ButtonType.YES && !isGameOver) {
+                app.sendMessage(new Message(MessageType.SURRENDER, null));
+            }
+        });
+    }
+
+    /** Đối thủ xin hòa: hiện dải thông báo, KHÔNG chặn bàn bài, KHÔNG dừng đồng hồ. */
+    public void handleDrawOffer(String fromName) {
+        if (isGameOver) return;
+        incomingDrawOffer = true;
+        showDrawBanner(fromName + " đề nghị hòa", true, 0);
+    }
+
+    @FXML
+    private void onDrawAccept() {
+        if (!incomingDrawOffer) return;
+        incomingDrawOffer = false;
+        hideDrawBanner();
+        app.sendMessage(new Message(MessageType.DRAW_RESPONSE, Boolean.TRUE));
+    }
+
+    @FXML
+    private void onDrawDecline() {
+        if (!incomingDrawOffer) return;
+        incomingDrawOffer = false;
+        hideDrawBanner();
+        app.sendMessage(new Message(MessageType.DRAW_RESPONSE, Boolean.FALSE));
+    }
+
+    /** Lời cầu hòa của mình bị từ chối / hết hạn. */
+    public void handleDrawRejected(String reason) {
+        myDrawPending = false;
+        updateDrawButtons();
+        if (!isGameOver) showDrawBanner(reason, false, 2500);
+    }
+
+    private void updateDrawButtons() {
+        if (btnDraw == null) return;
+        btnDraw.setText(myDrawPending ? "Đang chờ..." : "Cầu hòa (còn " + drawOffersLeft + ")");
+        btnDraw.setDisable(isGameOver || myDrawPending || drawOffersLeft <= 0);
+        btnSurrender.setDisable(isGameOver);
+    }
+
+    private void showDrawBanner(String text, boolean withButtons, long autoHideMs) {
+        if (drawBanner == null) return;
+        if (bannerHideTimer != null) bannerHideTimer.stop();
+        lblDrawBanner.setText(text);
+        btnDrawAccept.setVisible(withButtons); btnDrawAccept.setManaged(withButtons);
+        btnDrawDecline.setVisible(withButtons); btnDrawDecline.setManaged(withButtons);
+        drawBanner.setVisible(true);
+        drawBanner.setManaged(true);
+        if (autoHideMs > 0) {
+            bannerHideTimer = new PauseTransition(Duration.millis(autoHideMs));
+            bannerHideTimer.setOnFinished(e -> { if (!incomingDrawOffer && !myDrawPending) hideDrawBanner(); });
+            bannerHideTimer.play();
+        }
+    }
+
+    private void hideDrawBanner() {
+        if (drawBanner == null) return;
+        drawBanner.setVisible(false);
+        drawBanner.setManaged(false);
     }
 
     /** Đối thủ thoát / mất kết nối giữa trận: chỉ cho về sảnh, không có "Chơi tiếp". */

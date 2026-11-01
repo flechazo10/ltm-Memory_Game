@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Chọn chủ đề: ảnh đại diện = img01.jpg của chủ đề. Đổi chủ đề bằng mũi tên, kéo chuột, phím ← →. -->
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="client.controller.ThemeSelectController"
+            fx:id="root" styleClass="app-root" prefWidth="1000.0" prefHeight="680.0"
+            stylesheets="@style.css, @menu.css">
+    <top>
+        <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="12.0">
+            <children>
+                <Button text="← Menu" onAction="#onBack"/>
+                <Label styleClass="brand" text="Lật Bài Online"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblDifficulty" styleClass="welcome-chip" text="Độ khó"/>
+            </children>
+        </HBox>
+    </top>
+    <center>
+        <VBox alignment="TOP_CENTER" spacing="16.0">
+            <BorderPane.margin><Insets top="8.0" right="24.0" bottom="20.0" left="24.0"/></BorderPane.margin>
+            <children>
+                <StackPane styleClass="theme-banner" maxWidth="760.0">
+                    <children>
+                        <Label fx:id="lblThemeName" styleClass="theme-banner-text" text="Chủ đề"/>
+                    </children>
+                </StackPane>
+
+                <HBox alignment="CENTER" spacing="22.0" VBox.vgrow="ALWAYS">
+                    <children>
+                        <Button fx:id="btnPrev" styleClass="theme-arrow" text="◀" onAction="#onPrev"/>
+                        <VBox fx:id="leftSide" styleClass="theme-side" alignment="CENTER" spacing="6.0">
+                            <children>
+                                <ImageView fx:id="imgPrev" fitWidth="130.0" fitHeight="130.0"/>
+                                <Label fx:id="lblPrev" styleClass="theme-side-label" text=""/>
+                            </children>
+                        </VBox>
+                        <StackPane fx:id="centerPane" styleClass="theme-frame">
+                            <children>
+                                <ImageView fx:id="imgMain" fitWidth="300.0" fitHeight="300.0"/>
+                            </children>
+                        </StackPane>
+                        <VBox fx:id="rightSide" styleClass="theme-side" alignment="CENTER" spacing="6.0">
+                            <children>
+                                <ImageView fx:id="imgNext" fitWidth="130.0" fitHeight="130.0"/>
+                                <Label fx:id="lblNext" styleClass="theme-side-label" text=""/>
+                            </children>
+                        </VBox>
+                        <Button fx:id="btnNext" styleClass="theme-arrow" text="▶" onAction="#onNext"/>
+                    </children>
+                </HBox>
+
+                <HBox fx:id="dots" alignment="CENTER" spacing="8.0"/>
+                <Button styleClass="btn-green, btn-enter" text="Vào" defaultButton="true" onAction="#onEnter"/>
+                <Label styleClass="theme-hint" text="Kéo chuột hoặc bấm ← → để đổi chủ đề"/>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>
