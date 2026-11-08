@@ -23,7 +23,8 @@
     -k-sky-top: #7ec8f2;
     -k-sky-bottom: #c4e8fb;
 
-    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    /* Font game "LatBai" (Baloo 2, giấy phép OFL - assets/fonts/), nạp trong ClientRunApp */
+    -fx-font-family: "LatBai", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-text-fill: -k-ink;
@@ -313,3 +314,30 @@
 .draw-banner-text { -fx-font-size: 14px; -fx-font-weight: bold; }
 
 .countdown-dim { -fx-background-color: rgba(30, 60, 90, 0.55); }
+
+/* ===== Màn kết quả trận ===== */
+.result-dim { -fx-background-color: rgba(20, 40, 70, 0.6); }
+.result-card {
+    -fx-background-color: -k-ink, -k-cream;
+    -fx-background-insets: 0, 4 4 10 4;
+    -fx-background-radius: 22, 18;
+    -fx-padding: 0 30 32 30;
+    -fx-min-width: 420;
+}
+.result-title {
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 10 28 14 28;
+    -fx-background-radius: 0 0 16 16;
+    -fx-border-color: -k-ink;
+    -fx-border-width: 0 4 4 4;
+    -fx-border-radius: 0 0 16 16;
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.25), 0, 0, 0, 3);
+}
+.result-win  .result-title { -fx-background-color: -k-green; }
+.result-lose .result-title { -fx-background-color: -k-red; }
+.result-draw .result-title { -fx-background-color: -k-orange; }
+.result-sub { -fx-font-size: 15px; -fx-text-fill: -k-muted; -fx-padding: 6 0 0 0; }
+.result-score { -fx-font-size: 46px; -fx-font-weight: bold; }
+.result-score-sep { -fx-font-size: 36px; -fx-text-fill: -k-muted; }

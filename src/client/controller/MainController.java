@@ -33,10 +33,8 @@ public class MainController {
     @FXML private Label lblMyName;
     @FXML private Label lblMyScore;
     @FXML private Label lblSelection;
-    @FXML private TableView<Player> tblPlayers;
-    @FXML private TableColumn<Player, String> colName;
-    @FXML private TableColumn<Player, Double> colScore; // Đổi sang Double
-    @FXML private TableColumn<Player, String> colStatus;
+    @FXML private javafx.scene.layout.FlowPane playerCards;
+    @FXML private Label lblNoPlayers;
     @FXML private Button btnMusic;
 
     private ObservableList<Player> players = FXCollections.observableArrayList();
@@ -67,7 +65,7 @@ public class MainController {
                 players.add(p);
             }
         }
-        tblPlayers.setItems(players);
+        renderPlayerCards();
     }
 
     public void setUserLogin(Player userLogin) {
@@ -79,7 +77,7 @@ public class MainController {
         showMyInfo();
         // danh sách có thể đã về trước khi biết mình là ai -> lọc lại
         if (players.removeIf(p -> p.getId() == userLogin.getId())) {
-            tblPlayers.setItems(players);
+            renderPlayerCards();
         }
     }
 
@@ -141,51 +139,54 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        colName.setCellValueFactory(new PropertyValueFactory<>("username"));
-        colScore.setCellValueFactory(new PropertyValueFactory<>("totalScore"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        colScore.setCellFactory(column -> new TableCell<Player, Double>() {
-            @Override
-            protected void updateItem(Double score, boolean empty) {
-                super.updateItem(score, empty);
-                setText(empty || score == null ? null : formatScore(score));
-            }
-        });
+        renderPlayerCards();
+    }
 
-        colStatus.setCellFactory(column -> new TableCell<Player, String>() {
-            @Override
-            protected void updateItem(String status, boolean empty) {
-                super.updateItem(status, empty);
-                if (empty || status == null) {
-                    setText(null);
-                } else {
-                    status = status.toUpperCase();
-                    if (status.equals(String.valueOf(Status.ONLINE))) {
-                        setText("Rảnh");
-                        setStyle("-fx-text-fill: #2c8a1f; -fx-font-weight: bold;");
-                    } else if (status.equals(String.valueOf(Status.OFFLINE))) {
-                        setText("Offline");
-                        setStyle("-fx-text-fill: #9a9078; -fx-font-weight: bold;");
-                    } else {
-                        setText("Đang chơi");
-                        setStyle("-fx-text-fill: #d98a00; -fx-font-weight: bold;");
-                    }
-                    setAlignment(Pos.CENTER);
-                }
-            }
-        });
+    // ===== Thẻ người chơi ở sảnh =====
+    private static final String[] AVATAR_COLORS = {"#3b8fe8", "#4cbb3a", "#e84b3b", "#f5a623", "#9b59b6", "#16a085", "#e67e22", "#2c3e50"};
 
-        // Click 1 LẦN vào đối thủ để hiện popup thách đấu
-        tblPlayers.setRowFactory(tv -> {
-            TableRow<Player> row = new TableRow<>();
-            row.setOnMouseClicked(event -> {
-                if (!row.isEmpty() && event.getClickCount() == 1) {
-                    Player clickedPlayer = row.getItem();
-                    showInviteDialog(clickedPlayer);
-                }
-            });
-            return row;
-        });
+    private void renderPlayerCards() {
+        if (playerCards == null) return;
+        playerCards.getChildren().clear();
+        for (Player p : players) {
+            playerCards.getChildren().add(createPlayerCard(p));
+        }
+        lblNoPlayers.setVisible(players.isEmpty());
+    }
+
+    private javafx.scene.Node createPlayerCard(Player p) {
+        String name = p.getUsername() == null ? "?" : p.getUsername();
+        String status = p.getStatus() == null ? "" : p.getStatus().toUpperCase();
+        boolean free = status.equals(String.valueOf(Status.ONLINE));
+        boolean offline = status.equals(String.valueOf(Status.OFFLINE));
+
+        // Avatar tròn: chữ cái đầu, màu cố định theo tên
+        javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(30,
+                javafx.scene.paint.Color.web(AVATAR_COLORS[Math.abs(name.hashCode()) % AVATAR_COLORS.length]));
+        circle.setStroke(javafx.scene.paint.Color.web("#3a3a3a"));
+        circle.setStrokeWidth(3);
+        Label initial = new Label(name.substring(0, 1).toUpperCase());
+        initial.getStyleClass().add("avatar-letter");
+        javafx.scene.layout.StackPane avatar = new javafx.scene.layout.StackPane(circle, initial);
+
+        Label lblName = new Label(name);
+        lblName.getStyleClass().add("tile-name");
+        Label lblScore = new Label(formatScore(p.getTotalScore()) + " điểm");
+        lblScore.getStyleClass().add("tile-score");
+        Label lblStatus = new Label(free ? "● Rảnh" : offline ? "● Offline" : "● Đang chơi");
+        lblStatus.getStyleClass().addAll("status-pill", free ? "status-free" : offline ? "status-off" : "status-busy");
+
+        Button btnInvite = new Button(free ? "Mời đấu" : "Đang bận");
+        btnInvite.getStyleClass().addAll(free ? "btn-green" : "btn-neutral", "btn-small");
+        btnInvite.setMaxWidth(Double.MAX_VALUE);
+        btnInvite.setDisable(!free);
+        btnInvite.setOnAction(e -> showInviteDialog(p));
+
+        VBox card = new VBox(6, avatar, lblName, lblScore, lblStatus, btnInvite);
+        card.setAlignment(Pos.TOP_CENTER);
+        card.getStyleClass().add("player-tile");
+        if (free) card.setOnMouseClicked(e -> { if (e.getClickCount() == 1 && !(e.getTarget() instanceof Button)) showInviteDialog(p); });
+        return card;
     }
 
     private void showLogoutModal() {
@@ -251,33 +252,7 @@ public class MainController {
     }
 
     public void showAcceptDialog(Player fromPlayer, String category, String difficulty) {
-        String diffLabel = ClientService.difficultyLabel(difficulty);
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Lời mời thách đấu");
-        alert.setHeaderText(fromPlayer.getUsername() + " mời bạn thi đấu chủ đề " + ClientService.themeName(category) + " [Độ khó: " + diffLabel + "]");
-        alert.setContentText("Bạn có chấp nhận không?");
-
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStyleClass().add("my-alert");
-
-        URL cssFile = getClass().getResource("/client/view/main.css");
-        if (cssFile != null) {
-            dialogPane.getStylesheets().add(cssFile.toExternalForm());
-        }
-
-        ButtonType btnOk = new ButtonType("Chấp nhận", ButtonBar.ButtonData.OK_DONE);
-        ButtonType btnCancel = new ButtonType("Từ chối", ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(btnOk, btnCancel);
-
-        alert.showAndWait().ifPresent(result -> {
-            boolean accepted = (result == btnOk);
-            try {
-                Object[] content = {userLogin, fromPlayer, accepted, category, difficulty};
-                app.sendMessage(new Message(MessageType.INVITE_RESPONSE, content));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        app.showAcceptDialog(fromPlayer, category, difficulty);   // dùng chung hộp thoại ở ClientService
     }
 
     public void showAlert(String title, String message) {
