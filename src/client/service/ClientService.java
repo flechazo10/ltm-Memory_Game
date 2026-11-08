@@ -84,6 +84,12 @@ public class ClientService {
 
     public ClientService(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        // Nạp font game (dùng trong CSS với tên "LatBai"); thiếu file thì dùng font hệ thống
+        URL font = getClass().getResource("/assets/fonts/LatBai-Baloo2Bold.ttf");
+        if (font != null) javafx.scene.text.Font.loadFont(font.toExternalForm(), 14);
+        // Icon cửa sổ / thanh taskbar = logo game
+        URL logo = getClass().getResource("/assets/images/logo.png");
+        if (logo != null) primaryStage.getIcons().add(new javafx.scene.image.Image(logo.toExternalForm()));
     }
 
     public void setSelectedPlayerName(String name) {
@@ -200,11 +206,8 @@ public class ClientService {
                             Player fromPlayer = (Player) inviteContent[0];
                             String category = (String) inviteContent[1];
                             String difficulty = (String) inviteContent[2];
-                            Platform.runLater(() -> {
-                                if (mainController != null) {
-                                    mainController.showAcceptDialog(fromPlayer, category, difficulty);
-                                }
-                            });
+                            // Hiện lời mời ở BẤT KỲ màn nào (Menu, chọn chủ đề, sảnh, xếp hạng...), trừ khi đang trong trận
+                            Platform.runLater(() -> showAcceptDialog(fromPlayer, category, difficulty));
                             break;
 
                         case INVITE_RESULT:
@@ -213,11 +216,7 @@ public class ClientService {
 
                         case INVITE_ERROR:
                             String inviteErr = (String) msg.getContent();
-                            Platform.runLater(() -> {
-                                if (mainController != null) {
-                                    mainController.showAlert("Thông báo mời đấu", inviteErr);
-                                }
-                            });
+                            Platform.runLater(() -> showNotice("Thông báo mời đấu", inviteErr));
                             break;
 
                         case LOGOUT_SUCCESS:
@@ -492,6 +491,79 @@ public class ClientService {
         });
     }
 
+    // ===== Chuyển màn có hiệu ứng mờ dần + tiếng bấm nút =====
+    private static final javafx.scene.media.AudioClip SOUND_CLICK = loadClip("/assets/sound/click.wav");
+
+    private static javafx.scene.media.AudioClip loadClip(String path) {
+        try {
+            URL url = ClientService.class.getResource(path);
+            return url == null ? null : new javafx.scene.media.AudioClip(url.toExternalForm());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Tiếng "bấm" khi nhấn nút (tắt theo nút Âm thanh). */
+    public void playClick() {
+        if (SOUND_CLICK != null && musicOn) SOUND_CLICK.play(0.6);
+    }
+
+    private void switchScene(Scene scene) {
+        // mọi nút trong màn (trừ lá bài - đã có tiếng lật riêng) phát tiếng bấm
+        scene.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+            if (e.getTarget() instanceof javafx.scene.control.ButtonBase
+                    && !((javafx.scene.Node) e.getTarget()).getStyleClass().contains("memory-card")) {
+                playClick();
+            }
+        });
+        Parent root = scene.getRoot();
+        root.setOpacity(0);
+        primaryStage.setScene(scene);
+        javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(javafx.util.Duration.millis(220), root);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    /** Hộp thoại nhận lời mời, dùng chung cho mọi màn hình. */
+    public void showAcceptDialog(Player fromPlayer, String category, String difficulty) {
+        if (gameRoomController != null || currentPlayer == null) {
+            // đang trong trận (hoặc chưa đăng nhập) -> tự từ chối để người mời không phải chờ
+            sendMessage(new Message(MessageType.INVITE_RESPONSE, new Object[]{currentPlayer, fromPlayer, false, category, difficulty}));
+            return;
+        }
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Lời mời thách đấu");
+        alert.setHeaderText(fromPlayer.getUsername() + " mời bạn thi đấu!");
+        alert.setContentText("Chủ đề: " + themeName(category) + "\nĐộ khó: " + difficultyLabel(difficulty));
+        styleDialog(alert);
+        javafx.scene.control.ButtonType ok = new javafx.scene.control.ButtonType("Chấp nhận", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+        javafx.scene.control.ButtonType no = new javafx.scene.control.ButtonType("Từ chối", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(ok, no);
+        alert.showAndWait().ifPresent(r -> {
+            boolean accepted = (r == ok);
+            sendMessage(new Message(MessageType.INVITE_RESPONSE, new Object[]{currentPlayer, fromPlayer, accepted, category, difficulty}));
+        });
+    }
+
+    /** Thông báo ngắn kiểu game, dùng được ở mọi màn hình. */
+    public void showNotice(String title, String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        styleDialog(alert);
+        alert.getButtonTypes().setAll(new javafx.scene.control.ButtonType("Ok", javafx.scene.control.ButtonBar.ButtonData.OK_DONE));
+        alert.showAndWait();
+    }
+
+    public static void styleDialog(javafx.scene.control.Dialog<?> dialog) {
+        javafx.scene.control.DialogPane pane = dialog.getDialogPane();
+        pane.getStyleClass().add("my-alert");
+        URL css = ClientService.class.getResource("/client/view/main.css");
+        if (css != null) pane.getStylesheets().add(css.toExternalForm());
+    }
+
     private void handleInviteResult(Message msg) {
         Object[] msgContent = (Object[]) msg.getContent();
         Player playerSendRequest = (Player) msgContent[0];
@@ -506,11 +578,8 @@ public class ClientService {
                 }
             });
         } else {
-            Platform.runLater(() -> {
-                if (mainController != null) {
-                    mainController.showAlert("Thông báo", playerReceiveRequest.getUsername() + " đã từ chối lời mời!");
-                }
-            });
+            // msgContent[0] là người được mời (người vừa từ chối), msgContent[1] là chính mình (người mời)
+            Platform.runLater(() -> showNotice("Lời mời bị từ chối", playerSendRequest.getUsername() + " đã từ chối lời mời!"));
         }
     }
 
@@ -570,7 +639,7 @@ public class ClientService {
             }
 
             primaryStage.setTitle("Lật Bài Online - Đăng ký");
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -586,7 +655,7 @@ public class ClientService {
             loginController = loader.getController();
             loginController.setClient(this);
 
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.setTitle("Lật Bài Online - Đăng nhập");
             primaryStage.show();
         } catch (IOException e) {
@@ -602,7 +671,7 @@ public class ClientService {
             MenuController controller = loader.getController();
             controller.setClient(this);
             primaryStage.setTitle("Lật Bài Online - Menu");
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -617,7 +686,7 @@ public class ClientService {
             ThemeSelectController controller = loader.getController();
             controller.setClient(this, scene);
             primaryStage.setTitle("Lật Bài Online - Chọn chủ đề");
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -635,7 +704,7 @@ public class ClientService {
             mainController.setUserLogin(currentPlayer);
 
             primaryStage.setTitle("Lật Bài Online - Sảnh chờ");
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -658,7 +727,7 @@ public class ClientService {
             }
 
             primaryStage.setTitle("Lật Bài Online - Bảng xếp hạng");
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();
@@ -679,7 +748,7 @@ public class ClientService {
             }
             historyController.setHistoryList(historyList);
 
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.setTitle("Lật Bài Online - Lịch sử đấu");
             primaryStage.show();
         } catch (IOException e) {
@@ -704,7 +773,7 @@ public class ClientService {
                 scene.getStylesheets().add(cssLocation.toExternalForm());
             }
 
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.setTitle("Lật Bài Online - Lịch sử: " + playerName);
             primaryStage.show();
         } catch (IOException e) {
@@ -727,7 +796,7 @@ public class ClientService {
             }
 
             primaryStage.setTitle("Lật Bài Online - Trận đấu");
-            primaryStage.setScene(scene);
+            switchScene(scene);
             primaryStage.show();
         } catch (IOException e) {
             e.printStackTrace();

@@ -30,7 +30,7 @@ public class GameRoomController implements Initializable {
     // Khop voi GameRoom: kich thuoc luoi duoc server gui qua START_GAME
     private int gridRows = 4;  // mac dinh hard
     private int gridCols = 6;
-    private static final int CARD_SIZE = 90;
+    private int cardSize = 90;   // đổi theo độ khó: Dễ 130, Vừa 96, Khó 90
     private static final int TURN_TIME_SECONDS = 15;
     private static final int DEFAULT_MATCH_SECONDS = 15 * 60;   // trùng GameRoom.MATCH_TIMEOUT_MINUTES
     // Ảnh nền mặc định — dùng chung cho tất cả chủ đề: messi, giang_ho_mang, truong_con_nam_dinh
@@ -117,7 +117,17 @@ public class GameRoomController implements Initializable {
     private boolean isMusicOn;
     private Timeline turnTimeline;
     private Timeline matchTimeline;
-    private Alert resultAlert;
+    @FXML private StackPane resultOverlay;
+    @FXML private Pane confettiLayer;
+    @FXML private VBox resultCard;
+    @FXML private Label lblResultTitle;
+    @FXML private Label lblResultSub;
+    @FXML private Label lblResultMeName;
+    @FXML private Label lblResultMeScore;
+    @FXML private Label lblResultOppName;
+    @FXML private Label lblResultOppScore;
+    @FXML private Button btnResultHome;
+    @FXML private Button btnResultAgain;
     private boolean leavingRoom = false;
 
     @FXML private StackPane countdownOverlay;
@@ -230,6 +240,8 @@ public class GameRoomController implements Initializable {
                 Object grCols = gameData.get("gridCols");
                 if (grRows instanceof Integer) this.gridRows = (Integer) grRows;
                 if (grCols instanceof Integer) this.gridCols = (Integer) grCols;
+                // Lưới nhỏ thì lá to hơn cho đỡ trống
+                this.cardSize = (gridRows * gridCols <= 8) ? 130 : (gridRows * gridCols <= 16) ? 96 : 90;
 
                 if (theme != null) {
                     changeBackgroundByTheme(theme);
@@ -344,26 +356,28 @@ public class GameRoomController implements Initializable {
             int winnerId = (int) resultData.get("winnerId");
             Object left = resultData.get("leftPlayerId");
             int leftPlayerId = (left instanceof Integer) ? (Integer) left : -1;
-            if (leftPlayerId != -1) {
-                if (leftPlayerId == userPlayer.getId()) return;   // chính mình bấm rời trận -> sắp về sảnh, không hiện kết quả
-                showOpponentLeftDialog();
-                return;
-            }
+            if (leftPlayerId == userPlayer.getId()) return;   // chính mình bấm rời trận -> sắp về sảnh, không hiện kết quả
             Object sur = resultData.get("surrenderedPlayerId");
             int surrenderedId = (sur instanceof Integer) ? (Integer) sur : -1;
-            String text;
-            if (surrenderedId == userPlayer.getId()) {
-                text = "BẠN ĐÃ XIN THUA.";
+
+            boolean iAmP1 = userPlayer.getId() == serverPlayer1Id;
+            int p1 = resultData.get("player1FinalPairs") instanceof Integer ? (Integer) resultData.get("player1FinalPairs") : 0;
+            int p2 = resultData.get("player2FinalPairs") instanceof Integer ? (Integer) resultData.get("player2FinalPairs") : 0;
+            int mine = iAmP1 ? p1 : p2, theirs = iAmP1 ? p2 : p1;
+
+            if (leftPlayerId != -1) {
+                showResult("win", "ĐỐI THỦ ĐÃ THOÁT", "Đối thủ rời trận hoặc mất kết nối. Bạn được tính thắng!", mine, theirs, false);
+            } else if (surrenderedId == userPlayer.getId()) {
+                showResult("lose", "BẠN ĐÃ XIN THUA", "Đối thủ được tính thắng.", mine, theirs, true);
             } else if (surrenderedId != -1) {
-                text = "ĐỐI THỦ XIN THUA — BẠN THẮNG! 🎉";
+                showResult("win", "BẠN THẮNG!", "Đối thủ đã xin thua.", mine, theirs, true);
             } else if (winnerId == -1) {
-                text = "HÒA TRẬN!";
+                showResult("draw", "HÒA TRẬN!", "Mỗi người được +0.5 điểm.", mine, theirs, true);
             } else if (winnerId == userPlayer.getId()) {
-                text = "BẠN ĐÃ THẮNG CUỘC! 🎉";
+                showResult("win", "BẠN THẮNG!", "+1 điểm xếp hạng.", mine, theirs, true);
             } else {
-                text = "BẠN ĐÃ THUA CUỘC!";
+                showResult("lose", "BẠN THUA RỒI!", "Ván sau gỡ lại nhé.", mine, theirs, true);
             }
-            showResultDialog("KẾT THÚC TRẬN ĐẤU", text);
         });
     }
 
@@ -466,6 +480,7 @@ public class GameRoomController implements Initializable {
         pendingFlipBackCards = null;
         opponentRevealedIndex = null;
         resetCardSelection();
+        hideResult();
         drawOffersLeft = MAX_DRAW_OFFERS;
         myDrawPending = false;
         incomingDrawOffer = false;
@@ -558,9 +573,7 @@ public class GameRoomController implements Initializable {
         leavingRoom = true;
         if (turnTimeline != null) turnTimeline.stop();
         if (matchTimeline != null) matchTimeline.stop();
-        if (resultAlert != null && resultAlert.isShowing()) {
-            resultAlert.close();
-        }
+        hideResult();
     }
 
     private void createGameBoard() {
@@ -578,9 +591,9 @@ public class GameRoomController implements Initializable {
 
     private Button createCardButton(int index) {
         Button card = new Button();
-        card.setPrefSize(CARD_SIZE, CARD_SIZE);
-        card.setMinSize(CARD_SIZE, CARD_SIZE);
-        card.setMaxSize(CARD_SIZE, CARD_SIZE);
+        card.setPrefSize(cardSize, cardSize);
+        card.setMinSize(cardSize, cardSize);
+        card.setMaxSize(cardSize, cardSize);
         card.setPadding(javafx.geometry.Insets.EMPTY);  // bỏ padding để ảnh fill sát viền
         card.getStyleClass().add("memory-card");
         card.setUserData(index);
@@ -814,8 +827,8 @@ public class GameRoomController implements Initializable {
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
             Image image = new Image(new ByteArrayInputStream(imageBytes));
             ImageView imageView = new ImageView(image);
-            imageView.setFitWidth(CARD_SIZE);
-            imageView.setFitHeight(CARD_SIZE);
+            imageView.setFitWidth(cardSize);
+            imageView.setFitHeight(cardSize);
             imageView.setPreserveRatio(false);  // stretch vừa khít khung
             imageView.setSmooth(true);
             return imageView;
@@ -835,8 +848,8 @@ public class GameRoomController implements Initializable {
         try {
             Image image = new Image(url.toExternalForm());
             imageView.setImage(image);
-            imageView.setFitWidth(CARD_SIZE);
-            imageView.setFitHeight(CARD_SIZE);
+            imageView.setFitWidth(cardSize);
+            imageView.setFitHeight(cardSize);
             imageView.setPreserveRatio(false);  // stretch vừa khít khung
             imageView.setSmooth(true);
         } catch (Exception e) {
@@ -953,55 +966,90 @@ public class GameRoomController implements Initializable {
         drawBanner.setManaged(false);
     }
 
-    /** Đối thủ thoát / mất kết nối giữa trận: chỉ cho về sảnh, không có "Chơi tiếp". */
-    private void showOpponentLeftDialog() {
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle("KẾT THÚC TRẬN ĐẤU");
-        alert.setHeaderText("ĐỐI THỦ ĐÃ THOÁT — BẠN THẮNG! 🎉");
-        alert.setContentText("Đối thủ đã rời trận hoặc mất kết nối.\nBạn được tính thắng.");
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setMinWidth(460);
-        dialogPane.getStyleClass().add("my-alert");
-        URL cssFile = AlertController.class.getResource("/client/view/main.css");
-        if (cssFile != null) {
-            dialogPane.getStylesheets().add(cssFile.toExternalForm());
-        }
-        ButtonType homeButton = new ButtonType("Về sảnh chính", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(homeButton);
 
-        resultAlert = alert;
-        alert.showAndWait();
-        resultAlert = null;
-        if (leavingRoom) return;
-        leaveAfterGame();
+    // ===================== MÀN KẾT QUẢ =====================
+
+    /** kind = win / lose / draw. allowReplay = false khi đối thủ đã rời trận. */
+    private void showResult(String kind, String title, String sub, int mine, int theirs, boolean allowReplay) {
+        resultCard.getStyleClass().removeAll("result-win", "result-lose", "result-draw");
+        resultCard.getStyleClass().add("result-" + kind);
+        lblResultTitle.setText(title);
+        lblResultSub.setText(sub);
+        lblResultMeName.setText(userPlayer != null ? userPlayer.getUsername() : "BẠN");
+        lblResultOppName.setText(opponentPlayer != null ? opponentPlayer.getUsername() : "ĐỐI THỦ");
+        lblResultMeScore.setText(String.valueOf(mine));
+        lblResultOppScore.setText(String.valueOf(theirs));
+        btnResultAgain.setVisible(allowReplay);
+        btnResultAgain.setManaged(allowReplay);
+        resultOverlay.setVisible(true);
+
+        resultCard.setScaleX(0.5);
+        resultCard.setScaleY(0.5);
+        ScaleTransition grow = new ScaleTransition(Duration.millis(260), resultCard);   // phóng to quá đà rồi thu lại = nảy nhẹ
+        grow.setToX(1.08);
+        grow.setToY(1.08);
+        grow.setInterpolator(Interpolator.EASE_OUT);
+        ScaleTransition settle = new ScaleTransition(Duration.millis(140), resultCard);
+        settle.setToX(1);
+        settle.setToY(1);
+        FadeTransition fade = new FadeTransition(Duration.millis(250), resultOverlay);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        new ParallelTransition(new SequentialTransition(grow, settle), fade).play();
+
+        if ("win".equals(kind)) launchConfetti();
     }
 
-    private void showResultDialog(String title, String header) {
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStyleClass().add("my-alert");
-        URL cssFile = AlertController.class.getResource("/client/view/main.css");
-        if (cssFile != null) {
-            dialogPane.getStylesheets().add(cssFile.toExternalForm());
+    private void hideResult() {
+        if (resultOverlay != null) resultOverlay.setVisible(false);
+        if (confettiLayer != null) confettiLayer.getChildren().clear();
+    }
+
+    /** Pháo giấy: các mảnh màu rơi từ trên xuống, xoay, mờ dần. */
+    private void launchConfetti() {
+        confettiLayer.getChildren().clear();
+        double w = resultOverlay.getWidth() > 0 ? resultOverlay.getWidth() : 1100;
+        double h = resultOverlay.getHeight() > 0 ? resultOverlay.getHeight() : 720;
+        String[] colors = {"#e84b3b", "#3b8fe8", "#4cbb3a", "#f5c623", "#f5a623", "#9b59b6"};
+        Random rnd = new Random();
+        for (int i = 0; i < 90; i++) {
+            javafx.scene.shape.Rectangle r = new javafx.scene.shape.Rectangle(8 + rnd.nextInt(6), 12 + rnd.nextInt(8));
+            r.setFill(Color.web(colors[rnd.nextInt(colors.length)]));
+            r.setArcWidth(3);
+            r.setArcHeight(3);
+            r.setLayoutX(rnd.nextDouble() * w);
+            r.setLayoutY(-30 - rnd.nextDouble() * 200);
+            r.setRotate(rnd.nextInt(360));
+            confettiLayer.getChildren().add(r);
+
+            Duration d = Duration.millis(2200 + rnd.nextInt(1600));
+            TranslateTransition fall = new TranslateTransition(d, r);
+            fall.setToY(h + 260);
+            fall.setToX(rnd.nextInt(160) - 80);
+            RotateTransition spin = new RotateTransition(d, r);
+            spin.setByAngle(360 + rnd.nextInt(540));
+            FadeTransition out = new FadeTransition(Duration.millis(600), r);
+            out.setDelay(d.subtract(Duration.millis(600)));
+            out.setToValue(0);
+            ParallelTransition p = new ParallelTransition(fall, spin, out);
+            p.setDelay(Duration.millis(rnd.nextInt(500)));
+            p.play();
         }
+    }
 
-        ButtonType continueBtn = new ButtonType("Chơi tiếp", ButtonBar.ButtonData.OK_DONE);
-        ButtonType homeButton = new ButtonType("Về sảnh chính", ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(continueBtn, homeButton);
+    @FXML
+    private void onResultAgain() {
+        hideResult();
+        if (leavingRoom) return;
+        app.sendMessage(new Message(MessageType.PLAY_AGAIN_REQUEST, userPlayer));
+        lblTurnIndicator.setText("ĐANG CHỜ ĐỐI THỦ...");
+        lblTurnIndicator.setTextFill(Color.web("#7a6a40"));
+    }
 
-        resultAlert = alert;
-        Optional<ButtonType> response = alert.showAndWait();
-        resultAlert = null;
-        if (leavingRoom) return;   // đã bị đưa về sảnh trong lúc hộp thoại đang mở
-
-        if (response.isPresent() && response.get() == continueBtn) {
-            app.sendMessage(new Message(MessageType.PLAY_AGAIN_REQUEST, userPlayer));
-            lblTurnIndicator.setText("ĐANG CHỜ ĐỐI THỦ...");
-            lblTurnIndicator.setTextFill(Color.web("#7a6a40"));
-        } else {
-            leaveAfterGame();
-        }
+    @FXML
+    private void onResultHome() {
+        hideResult();
+        if (leavingRoom) return;
+        leaveAfterGame();
     }
 }

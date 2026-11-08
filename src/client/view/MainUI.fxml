@@ -3,8 +3,9 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -40,25 +41,25 @@
                         <VBox spacing="2.0" HBox.hgrow="ALWAYS">
                             <children>
                                 <Label styleClass="page-title" text="Người chơi đang online"/>
-                                <Label styleClass="muted" text="Nhấn vào một người đang rảnh để gửi lời thách đấu."/>
+                                <Label styleClass="muted" text="Bấm Mời ở thẻ một người đang Rảnh để thách đấu."/>
                             </children>
                         </VBox>
                         <Button styleClass="btn-green" text="Làm mới" onAction="#onRefresh"/>
                     </children>
                 </HBox>
-                <TableView fx:id="tblPlayers" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="colName" text="NGƯỜI CHƠI" prefWidth="300.0"/>
-                        <TableColumn fx:id="colScore" text="TỔNG ĐIỂM" prefWidth="150.0"/>
-                        <TableColumn fx:id="colStatus" text="TRẠNG THÁI" prefWidth="150.0"/>
-                    </columns>
-                    <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                    </columnResizePolicy>
-                    <placeholder>
-                        <Label styleClass="muted" text="Chưa có ai online. Bấm &quot;Làm mới&quot; để tải lại."/>
-                    </placeholder>
-                </TableView>
+                <!-- Mỗi người chơi online là 1 thẻ: avatar, tên, điểm, trạng thái, nút Mời -->
+                <StackPane styleClass="players-box" VBox.vgrow="ALWAYS">
+                    <children>
+                        <ScrollPane fx:id="playersScroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="players-scroll">
+                            <content>
+                                <FlowPane fx:id="playerCards" hgap="14.0" vgap="14.0">
+                                    <padding><Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/></padding>
+                                </FlowPane>
+                            </content>
+                        </ScrollPane>
+                        <Label fx:id="lblNoPlayers" styleClass="muted" text="Chưa có ai online. Bấm &quot;Làm mới&quot; để tải lại."/>
+                    </children>
+                </StackPane>
             </children>
         </VBox>
     </center>
@@ -84,15 +85,6 @@
                         <Label styleClass="section-title" text="Menu"/>
                         <Button styleClass="btn-primary, btn-menu" text="Bảng xếp hạng" maxWidth="Infinity" onAction="#onRanking"/>
                         <Button styleClass="btn-green, btn-menu" text="Lịch sử đấu" maxWidth="Infinity" onAction="#onHistory"/>
-                    </children>
-                </VBox>
-                <VBox styleClass="panel" spacing="8.0">
-                    <children>
-                        <Label styleClass="section-title" text="Luật chơi"/>
-                        <Label styleClass="tip-text" text="• Độ khó chọn ở Menu: Dễ 2×4, Vừa 4×4, Khó 4×6."/>
-                        <Label styleClass="tip-text" text="• Mỗi lượt có 15 giây để lật 2 lá. Trùng cặp được +1 điểm và lật tiếp."/>
-                        <Label styleClass="tip-text" text="• Trận tối đa 15 phút. Thắng +1, hòa +0.5, thua 0 điểm xếp hạng."/>
-                        <Label styleClass="tip-text" text="• Hết giờ 3 lượt liên tiếp hoặc thoát giữa chừng sẽ bị xử thua."/>
                     </children>
                 </VBox>
             </children>

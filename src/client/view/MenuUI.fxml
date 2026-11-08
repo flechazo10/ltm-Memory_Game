@@ -3,6 +3,9 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -14,7 +17,14 @@
     <children>
         <VBox styleClass="menu-card" alignment="TOP_CENTER" spacing="10.0" maxWidth="460.0" maxHeight="-Infinity">
             <children>
-                <Label styleClass="menu-title" text="LẬT BÀI ONLINE"/>
+                <HBox alignment="CENTER" spacing="10.0">
+                    <children>
+                        <ImageView fitWidth="64.0" fitHeight="64.0" preserveRatio="true" smooth="true">
+                            <image><Image url="@../../assets/images/logo.png"/></image>
+                        </ImageView>
+                        <Label styleClass="menu-title" text="LẬT BÀI ONLINE"/>
+                    </children>
+                </HBox>
                 <Label fx:id="lblHello" styleClass="menu-subtitle" text="Xin chào"/>
 
                 <Button styleClass="menu-btn, menu-play" maxWidth="Infinity" onAction="#onPlay">

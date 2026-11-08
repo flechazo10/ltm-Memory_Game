@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -17,7 +19,10 @@
     <children>
         <VBox styleClass="auth-card" spacing="14.0" maxWidth="400.0" maxHeight="-Infinity">
             <children>
-                <Label styleClass="auth-logo" text="LB"/>
+                <!-- Logo: assets/images/logo.png (thay file đó là đổi logo) -->
+                <ImageView fitWidth="76.0" fitHeight="76.0" preserveRatio="true" smooth="true">
+                    <image><Image url="@../../assets/images/logo.png"/></image>
+                </ImageView>
                 <VBox spacing="4.0">
                     <children>
                         <Label styleClass="app-title" text="Lật Bài Online"/>
