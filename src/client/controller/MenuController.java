@@ -71,7 +71,7 @@ public class MenuController {
         Label content = new Label(
                 "• Chọn độ khó ở Menu: Dễ 2×4 (4 cặp), Vừa 4×4 (8 cặp), Khó 4×6 (12 cặp).\n"
               + "• PLAY → chọn chủ đề → Vào sảnh → bấm vào người đang Rảnh để mời.\n"
-              + "• Hai người lần lượt lật 2 lá, mỗi lượt 15 giây. Trùng cặp được +1 cặp và lật tiếp, sai thì đổi lượt.\n"
+              + "• Hai người lần lượt lật 2 lá, mỗi lượt 15 giây. Trùng cặp được +1 cặp. Dù trúng hay sai, lượt đều chuyển sang đối thủ.\n"
               + "• Hết bài hoặc hết 15 phút: ai nhiều cặp hơn thắng.\n"
               + "• Điểm xếp hạng: thắng +1, hòa +0.5, thua 0.\n"
               + "• Trong trận có thể Cầu hòa (tối đa 3 lần) hoặc Xin thua.\n"
