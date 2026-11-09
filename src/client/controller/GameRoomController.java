@@ -299,7 +299,10 @@ public class GameRoomController implements Initializable {
                 showScoreIncreaseAnimation(txtScore2Value, 1);
             }
 
-            resetCardSelection();
+            // Trúng cặp cũng chuyển lượt -> khoá bấm cho tới khi nhận TURN_CHANGED
+            firstCardIndex = null;
+            firstCardButton = null;
+            isMyTurn = false;
         });
     }
 

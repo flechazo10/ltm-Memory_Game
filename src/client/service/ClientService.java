@@ -48,7 +48,7 @@ public class ClientService {
     public static final String[][] THEMES = {
             {"giang_ho_mang", "Giang Hồ Mạng"},
             {"messi", "Messi"},
-            {"truong_con_nam_dinh", "Trường Còn Nam Định"},
+            {"truong_con_nam_dinh", "Trường Con Nam Định"},
     };
     public static final String[] DIFFICULTIES = {"easy", "medium", "hard"};
     private String selectedTheme = THEMES[0][0];

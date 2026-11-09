@@ -29,7 +29,8 @@ public class GameRoom {
     private static final int COUNTDOWN_SECONDS = 3;
     private static final int CARD_SHOW_MS = 300;
     private static final long CARD_MISMATCH_DELAY_MS = 1200;
-    private static final long CARD_MATCH_DELAY_MS = 5;
+    // Lật trúng: chờ hiệu ứng viền + cộng điểm chạy xong rồi mới chuyển lượt sang đối thủ
+    private static final long CARD_MATCH_DELAY_MS = 800;
 
     //DAO
     private final MatchDAO matchDAO;
@@ -329,10 +330,12 @@ public class GameRoom {
                 endMatch(winner, loser, false);
                 isProcessingMove = false;
             } else {
+                // Luật: dù lật trúng hay sai, lượt đều chuyển sang đối thủ
+                ClientHandler nextPlayer = (playerWhoScored == player1Handler) ? player2Handler : player1Handler;
                 scheduler.schedule(() -> {
                     synchronized (gameLock) {
                         if (gameState != GameState.PLAYING) return;
-                        requestNextTurn(playerWhoScored);
+                        requestNextTurn(nextPlayer);
                         isProcessingMove = false;
                     }
                 }, CARD_MATCH_DELAY_MS, TimeUnit.MILLISECONDS);
