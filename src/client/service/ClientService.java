@@ -47,8 +47,8 @@ public class ClientService {
     /** Mã chủ đề (tên thư mục trong assets/images) và tên hiển thị. Thêm chủ đề: thêm 1 dòng ở đây. */
     public static final String[][] THEMES = {
             {"giang_ho_mang", "Giang Hồ Mạng"},
-            {"messi", "Messi"},
-            {"truong_con_nam_dinh", "Trường Còn Nam Định"},
+            {"messi", "Goat"},
+            {"truong_con_nam_dinh", "Trường Con Nam Định"},
     };
     public static final String[] DIFFICULTIES = {"easy", "medium", "hard"};
     private String selectedTheme = THEMES[0][0];
